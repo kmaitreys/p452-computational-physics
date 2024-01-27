@@ -1,30 +1,30 @@
 import array
+import random
 
 
 class Array:
-    def __init__(self, typecode, size):
-        self.typecode = typecode
-        self.size = size
-        self.arr = array.array(typecode, [0] * size)
+    @staticmethod
+    def zeros(typecode, size):
+        return array.array(typecode, [0] * size)
 
-    def __str__(self):
-        return str(self.arr)
+    @staticmethod
+    def ones(typecode, size):
+        return array.array(typecode, [1] * size)
 
-    def zeros(self):
-        return array.array(self.typecode, [0] * self.size)
+    @staticmethod
+    def arange(typecode, start, stop, step):
+        return array.array(typecode, range(start, stop, step))
 
-    def arange(self, start, stop, step):
-        return array.array(self.typecode, range(start, stop, step))
+    @staticmethod
+    def linspace(typecode, start, stop, num):
+        step = (stop - start) / (num - 1)
+        return array.array(typecode, [start + step * i for i in range(num)])
 
+    @staticmethod
+    def logspace(typecode, start, stop, num, base=10):
+        step = (stop - start) / (num - 1)
+        return array.array(typecode, [base ** (start + step * i) for i in range(num)])
 
-# Creating an array
-arr = Array("i", 5)
-print(arr)  # Output: array('i', [0, 0, 0, 0, 0])
-
-# Creating an array filled with zeros
-zeros_arr = arr.zeros()
-print(zeros_arr)  # Output: array('i', [0, 0, 0, 0, 0])
-
-# Creating an array using arange
-arange_arr = arr.arange(1, 10, 2)
-print(arange_arr)  # Output: array('i', [1, 3, 5, 7, 9])
+    @staticmethod
+    def random(typecode, size):
+        return array.array(typecode, [random.random() for _ in range(size)])
