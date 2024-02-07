@@ -1,3 +1,11 @@
+"""
+This module defines the basic data models
+like Arrays, Matrices, Vectors to be used
+to model the problems for the computational
+physics course.
+"""
+
+
 import array
 import random
 
