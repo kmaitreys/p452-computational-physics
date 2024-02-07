@@ -129,3 +129,12 @@ class Matrix:
                         self.data[k][j] += factor * self.data[i][j]
                         result.data[k][j] += factor * result.data[i][j]
         return result
+    
+    def __str__(self):
+        return "\n".join(" ".join(str(x) for x in row) for row in self.data)
+
+    def __repr__(self):
+        return f"Matrix({self.rows}, {self.cols})"
+    
+
+
