@@ -7,7 +7,6 @@ physics course.
 
 
 import array
-import random
 
 
 def frange(start, stop=None, step=None):
@@ -59,7 +58,7 @@ class Array:
 
     @staticmethod
     def random(typecode, size):
-        return array.array(typecode, [random.random() for _ in frange(size)])
+        raise NotImplementedError("Random number generation is not implemented yet.")
 
 
 class Matrix:
