@@ -37,17 +37,17 @@ class Array:
 
     @staticmethod
     def arange(typecode, start, stop, step):
-        return array.array(typecode, range(start, stop, step))
+        return array.array(typecode, frange(start, stop, step))
 
     @staticmethod
     def linspace(typecode, start, stop, num):
         step = (stop - start) / (num - 1)
-        return array.array(typecode, [start + step * i for i in range(num)])
+        return array.array(typecode, [start + step * i for i in frange(num)])
 
     @staticmethod
     def logspace(typecode, start, stop, num, base=10):
         step = (stop - start) / (num - 1)
-        return array.array(typecode, [base ** (start + step * i) for i in range(num)])
+        return array.array(typecode, [base ** (start + step * i) for i in frange(num)])
 
     @staticmethod
     def random(typecode, size):
