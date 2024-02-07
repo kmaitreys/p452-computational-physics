@@ -51,4 +51,70 @@ class Array:
 
     @staticmethod
     def random(typecode, size):
-        return array.array(typecode, [random.random() for _ in range(size)])
+        return array.array(typecode, [random.random() for _ in frange(size)])
+
+
+class Matrix:
+    def __init__(self, rows, cols):
+        self.rows = rows
+        self.cols = cols
+        self.data = [[0] * cols for _ in range(rows)]
+
+    def transpose(self):
+        return Matrix(self.cols, self.rows)
+
+    def __add__(self, other):
+        if isinstance(other, Matrix):
+            if self.rows != other.rows or self.cols != other.cols:
+                raise ValueError("Matrix dimensions must be the same")
+            result = Matrix(self.rows, self.cols)
+            for i in range(self.rows):
+                for j in range(self.cols):
+                    result.data[i][j] = self.data[i][j] + other.data[i][j]
+            return result
+        else:
+            raise ValueError("Matrix can only be added to another Matrix")
+
+    def __sub__(self, other):
+        if isinstance(other, Matrix):
+            if self.rows != other.rows or self.cols != other.cols:
+                raise ValueError("Matrix dimensions must be the same")
+            result = Matrix(self.rows, self.cols)
+            for i in range(self.rows):
+                for j in range(self.cols):
+                    result.data[i][j] = self.data[i][j] - other.data[i][j]
+            return result
+        else:
+            raise ValueError("Matrix can only be subtracted from another Matrix")
+
+    def __mul__(self, other):
+        if isinstance(other, Matrix):
+            if self.cols != other.rows:
+                raise ValueError("Matrix dimensions must be compatible")
+            result = Matrix(self.rows, other.cols)
+            for i in range(self.rows):
+                for j in range(other.cols):
+                    for k in range(self.cols):
+                        result.data[i][j] += self.data[i][k] * other.data[k][j]
+            return result
+        else:
+            raise ValueError("Matrix can only be multiplied by another Matrix")
+
+    def invert(self):
+        if self.rows != self.cols:
+            raise ValueError("Matrix must be square")
+        result = Matrix(self.rows, self.cols)
+        for i in range(self.rows):
+            result.data[i][i] = 1
+        for i in range(self.rows):
+            factor = 1 / self.data[i][i]
+            for j in range(self.cols):
+                self.data[i][j] *= factor
+                result.data[i][j] *= factor
+            for k in range(self.rows):
+                if k != i:
+                    factor = -self.data[k][i]
+                    for j in range(self.cols):
+                        self.data[k][j] += factor * self.data[i][j]
+                        result.data[k][j] += factor * result.data[i][j]
+        return result
