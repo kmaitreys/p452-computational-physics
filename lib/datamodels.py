@@ -34,6 +34,35 @@ def frange(start, stop=None, step=None):
 
 
 class Array:
+    """
+    A class to represent an array of numbers.
+    Numbers can be of any type. This class
+    wraps the array.array class to provide
+    additional functionality.
+
+    Methods
+    -------
+    zeros(typecode, size)
+        Returns an array of zeros of given size and typecode.
+
+    ones(typecode, size)
+        Returns an array of ones of given size and typecode.
+
+    arange(typecode, start, stop, step)
+        Returns an array of numbers from start to stop with given step size and typecode.
+
+    linspace(typecode, start, stop, num)
+        Returns an array of numbers from start to stop, linearly spaced with given number of points and typecode.
+
+    logspace(typecode, start, stop, num, base)
+        Returns an array of numbers from start to stop, logarithmically spaced with given number of points and typecode.
+
+    random(typecode, size)
+        Returns an array of random numbers of given size and typecode.
+    
+    
+    """
+
     @staticmethod
     def zeros(typecode, size):
         return array.array(typecode, [0] * size)
