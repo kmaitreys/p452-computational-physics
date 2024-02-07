@@ -68,7 +68,11 @@ class Matrix:
         self.data = [[0] * cols for _ in range(rows)]
 
     def transpose(self):
-        return Matrix(self.cols, self.rows)
+        result = Matrix(self.cols, self.rows)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                result.data[j][i] = self.data[i][j]
+        return result
 
     def __add__(self, other):
         if isinstance(other, Matrix):
