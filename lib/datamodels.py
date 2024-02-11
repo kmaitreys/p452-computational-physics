@@ -6,7 +6,7 @@ physics course.
 """
 
 
-import array
+from array import array
 
 
 def frange(start, stop=None, step=None):
@@ -33,11 +33,11 @@ def frange(start, stop=None, step=None):
         num_of_steps += 1
 
 
-class Array:
+class Array(array):
     """
     A class to represent an array of numbers.
     Numbers can be of any type. This class
-    wraps the array.array class to provide
+    wraps the array class to provide
     additional functionality.
 
     Methods
@@ -59,31 +59,34 @@ class Array:
 
     random(typecode, size)
         Returns an array of random numbers of given size and typecode.
-    
-    
+
+
     """
+
+    def __new__(cls, typecode, iterable):
+        return array.__new__(cls, typecode, iterable)
 
     @staticmethod
     def zeros(typecode, size):
-        return array.array(typecode, [0] * size)
+        return array(typecode, [0] * size)
 
     @staticmethod
     def ones(typecode, size):
-        return array.array(typecode, [1] * size)
+        return array(typecode, [1] * size)
 
     @staticmethod
     def arange(typecode, start, stop, step):
-        return array.array(typecode, frange(start, stop, step))
+        return array(typecode, frange(start, stop, step))
 
     @staticmethod
     def linspace(typecode, start, stop, num):
         step = (stop - start) / (num - 1)
-        return array.array(typecode, [start + step * i for i in frange(num)])
+        return array(typecode, [start + step * i for i in frange(num)])
 
     @staticmethod
     def logspace(typecode, start, stop, num, base=10):
         step = (stop - start) / (num - 1)
-        return array.array(typecode, [base ** (start + step * i) for i in frange(num)])
+        return array(typecode, [base ** (start + step * i) for i in frange(num)])
 
     @staticmethod
     def random(typecode, size):
@@ -158,12 +161,9 @@ class Matrix:
                         self.data[k][j] += factor * self.data[i][j]
                         result.data[k][j] += factor * result.data[i][j]
         return result
-    
+
     def __str__(self):
         return "\n".join(" ".join(str(x) for x in row) for row in self.data)
 
     def __repr__(self):
         return f"Matrix({self.rows}, {self.cols})"
-    
-
-
