@@ -7,7 +7,8 @@ The following methods are available:
 - Simpson's Rule
 - Gaussian Quadrature
 """
-from typing import Callable
+import math
+from typing import Callable, Tuple
 
 from .datamodels import Array
 
@@ -59,9 +60,111 @@ def simpson(
     if maximum_value_of_error_func is None:
         return print(f"The value of the integral is {h / 3 * sum(x)}.")
     else:
-        max_error = ((b - a) ** 5) / 180 / n**4 * maximum_value_of_error_func
+        max_error = (((b - a) ** 5) / 180 / n**4) * maximum_value_of_error_func
 
         return print(
             f"The value of the integral is {h / 3 * sum(x)} "
             f"with an error of {max_error}."
         )
+
+
+def simpson_alt(f, a, b, mx, tol):
+    n = int(((b-a)**5/180/tol*mx)**(1/4))
+    if n % 2 != 0:
+        n += 1
+    print(n)
+    h = (b - a) / n
+
+    x = Array.arange("d", a, b + h, h)
+    for i in range(len(x)):
+        if i == 0 or i == len(x) - 1:
+            x[i] = f(x[i])
+        if i % 2 == 0:
+            x[i] = 2 * f(x[i])
+        else:
+            x[i] = 4 * f(x[i])
+    
+    return h / 3 * sum(x)
+
+def get_quadrature_method(bounds: tuple[float, float]) -> dict[str, Callable]:
+    Legendre = {
+        "p0": lambda x: 1,
+        "p1": lambda x: x,
+        "p2": lambda x: 1.5 * (x**2 - 1 / 3),
+        "p3": lambda x: 2.5 * (x**3 - 3 / 5 * x),
+        "p4": lambda x: (1 / 8) * (35 * x**4 - 30 * x**2 + 3),
+        "p5": lambda x: (1 / 8) * (63 * x**5 - 70 * x**3 + 15 * x),
+        "p6": lambda x: (1 / 16) * (231 * x**6 - 315 * x**4 + 105 * x**2 - 5),
+        "p7": lambda x: (1 / 16) * (429 * x**7 - 693 * x**5 + 315 * x**3 - 35 * x),
+        "p8": lambda x: (1 / 128)
+        * (6435 * x**8 - 12012 * x**6 + 6930 * x**4 - 1260 * x**2 + 35),
+        "p9": lambda x: (1 / 128)
+        * (12155 * x**9 - 25740 * x**7 + 18018 * x**5 - 4620 * x**3 + 315 * x),
+        "p10": lambda x: (1 / 256)
+        * (
+            46189 * x**10
+            - 109395 * x**8
+            + 90090 * x**6
+            - 30030 * x**4
+            + 3465 * x**2
+            - 63
+        ),
+    }
+
+    Laguerre = {
+        "p0": lambda x: 1,
+        "p1": lambda x: 1 - x,
+        "p2": lambda x: (1 / 2) * (2 - 4 * x + x**2),
+        "p3": lambda x: (1 / 6) * (6 - 18 * x + 9 * x**2 - x**3),
+        "p4": lambda x: (1 / 24) * (24 - 96 * x + 72 * x**2 - 16 * x**3 + x**4),
+        "p5": lambda x: (1 / 120)
+        * (120 - 600 * x + 600 * x**2 - 200 * x**3 + 25 * x**4 - x**5),
+        "p6": lambda x: (1 / 720)
+        * (720 - 4320 * x + 5400 * x**2 - 2400 * x**3 + 450 * x**4 - 36 * x**5 + x**6),
+    }
+
+    Hermite = {
+        "p0": lambda x: 1,
+        "p1": lambda x: 2 * x,
+        "p2": lambda x: 4 * x**2 - 2,
+        "p3": lambda x: 8 * x**3 - 12 * x,
+        "p4": lambda x: 16 * x**4 - 48 * x**2 + 12,
+        "p5": lambda x: 32 * x**5 - 160 * x**3 + 120 * x,
+        "p6": lambda x: 64 * x**6 - 480 * x**4 + 720 * x**2 - 120,
+        "p7": lambda x: 128 * x**7 - 1344 * x**5 + 3360 * x**3 - 1680 * x,
+        "p8": lambda x: 256 * x**8 - 3584 * x**6 + 13440 * x**4 - 13440 * x**2 + 1680,
+        "p9": lambda x: 512 * x**9
+        - 9216 * x**7
+        + 48384 * x**5
+        - 80640 * x**3
+        + 30240 * x,
+        "p10": lambda x: 1024 * x**10
+        - 23040 * x**8
+        + 161280 * x**6
+        - 403200 * x**4
+        + 302400 * x**2
+        - 30240,
+    }
+    if bounds == (-math.inf, math.inf):
+        return Hermite
+    elif bounds == (-1, 1):
+        return Legendre
+    elif bounds == (0, math.inf):
+        return Laguerre
+    else:
+        raise ValueError(
+            "Invalid limits of integration. "
+            "Change the limits of integration to -inf and inf, -1 and 1, or 0 and inf."
+        )
+
+
+def gaussian_quadrature(func: Callable, bounds: Tuple[float, float]):
+    if not (
+        bounds == (-math.inf, math.inf) or bounds == (-1, 1) or bounds == (0, math.inf)
+    ):
+        raise ValueError(
+            "Invalid limits of integration. "
+            "Change the limits of integration to -inf and inf, -1 and 1, or 0 and inf."
+        )
+
+    method = get_quadrature_method(bounds)
