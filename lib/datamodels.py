@@ -109,6 +109,19 @@ class Matrix:
                 result.data[j][i] = self.data[i][j]
         return result
 
+    def diag(self, offset=0):
+        if self.rows != self.cols:
+            raise ValueError("Matrix must be square")
+        if offset > 0:
+            return Array(self.data[0][offset:] + [0] * offset)
+        elif offset < 0:
+            return Array(
+                [0] * -offset
+                + [self.data[i][-offset] for i in range(-offset, self.rows)]
+            )
+        else:
+            return Array(self.data[i][i] for i in range(self.rows))
+
     def __add__(self, other):
         if isinstance(other, Matrix):
             if self.rows != other.rows or self.cols != other.cols:
@@ -145,6 +158,21 @@ class Matrix:
             return result
         else:
             raise ValueError("Matrix can only be multiplied by another Matrix")
+    
+    def __setitem__(self, key, value):
+        # Set a value at a given index
+        if isinstance(key, tuple):
+            i, j = key
+            self.data[i][j] = value
+        # Set a row
+        if isinstance(key, int):
+            self.data[key] = value
+
+    def __getitem__(self, key):
+        # Get a value at a given index
+        if isinstance(key, tuple):
+            i, j = key
+            return self.data[i][j]
 
     def invert(self):
         if self.rows != self.cols:
