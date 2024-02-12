@@ -15,10 +15,9 @@ from .datamodels import Array
 
 def simpson(
     func: Callable,
-    a: float,
-    b: float,
-    n: int = 10000,
-    maximum_value_of_error_func: float | None = None,
+    bounds: Tuple[float, float],
+    tol: float,
+    maximum_value_of_error_func: float,
 ) -> float:
     """
     Integrate a function using Simpson's rule.
@@ -42,6 +41,9 @@ def simpson(
     float
         The value of the integral.
     """
+    a, b = bounds
+    n = int(((b - a) ** 5 / 180 / tol * maximum_value_of_error_func) ** (1 / 4))
+
     if n % 2 != 0:
         n += 1
 
@@ -49,42 +51,18 @@ def simpson(
 
     # create an array of x values
     x = Array.arange("d", a, b + h, h)
-    for i in range(len(x)):
-        if i == 0 or i == len(x) - 1:
-            x[i] = func(x[i])
+    x[0] = func(x[0])
+    x[-1] = func(x[-1])
+    for i in range(1, len(x) - 1):
         if i % 2 == 0:
             x[i] = 2 * func(x[i])
         else:
             x[i] = 4 * func(x[i])
 
-    if maximum_value_of_error_func is None:
-        return print(f"The value of the integral is {h / 3 * sum(x)}.")
-    else:
-        max_error = (((b - a) ** 5) / 180 / n**4) * maximum_value_of_error_func
+    return print(
+        f"The value of the integral is {h / 3 * sum(x)} with {n} intervals used."
+    )
 
-        return print(
-            f"The value of the integral is {h / 3 * sum(x)} "
-            f"with an error of {max_error}."
-        )
-
-
-def simpson_alt(f, a, b, mx, tol):
-    n = int(((b-a)**5/180/tol*mx)**(1/4))
-    if n % 2 != 0:
-        n += 1
-    print(n)
-    h = (b - a) / n
-
-    x = Array.arange("d", a, b + h, h)
-    for i in range(len(x)):
-        if i == 0 or i == len(x) - 1:
-            x[i] = f(x[i])
-        if i % 2 == 0:
-            x[i] = 2 * f(x[i])
-        else:
-            x[i] = 4 * f(x[i])
-    
-    return h / 3 * sum(x)
 
 def get_quadrature_method(bounds: tuple[float, float]) -> dict[str, Callable]:
     Legendre = {

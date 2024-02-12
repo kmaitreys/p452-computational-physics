@@ -7,14 +7,22 @@ It is basically a wrapper around the
 `matplotlib` library.
 """
 
-from typing import Callable
+from typing import Callable, Tuple
 
 import matplotlib.pyplot as plt
 
 from .datamodels import Array
 
 
-def plot(func: Callable, bounds: tuple[float, float], num_points: int, title: str):
+def plot_data(x: Array, y: Array, title, ):
+    """
+    Plot two arrays.
+    """
+    plt.plot(x, y)
+    plt.title(title)
+    # plt.show()
+
+def plot_function(func: Callable, bounds: Tuple[float, float], num_points: int, title: str):
     """
     Plot a function using matplotlib.
 
@@ -37,8 +45,9 @@ def plot(func: Callable, bounds: tuple[float, float], num_points: int, title: st
     y = Array.zeros("d", num_points)
     for i in range(num_points):
         y[i] = func(x[i])
-    print(f"Minimum value of y: {min(y)}")
-    print(f"Maximum value of y: {max(y)}")
+    
+    print(f"Minimal value of y: {min(y.abs())}")
+    print(f"Maximal value of y: {max(y.abs())}")
     plt.plot(x, y)
     plt.title(title)
     plt.show()

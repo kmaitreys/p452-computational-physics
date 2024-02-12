@@ -66,27 +66,30 @@ class Array(array):
     def __new__(cls, typecode, iterable):
         return array.__new__(cls, typecode, iterable)
 
+    def abs(self):
+        return Array(self.typecode, (abs(x) for x in self))
+
     @staticmethod
     def zeros(typecode, size):
-        return array(typecode, [0] * size)
+        return Array(typecode, [0] * size)
 
     @staticmethod
     def ones(typecode, size):
-        return array(typecode, [1] * size)
+        return Array(typecode, [1] * size)
 
     @staticmethod
     def arange(typecode, start, stop, step):
-        return array(typecode, frange(start, stop, step))
+        return Array(typecode, frange(start, stop, step))
 
     @staticmethod
     def linspace(typecode, start, stop, num):
         step = (stop - start) / (num - 1)
-        return array(typecode, [start + step * i for i in frange(num)])
+        return Array(typecode, [start + step * i for i in frange(num)])
 
     @staticmethod
     def logspace(typecode, start, stop, num, base=10):
         step = (stop - start) / (num - 1)
-        return array(typecode, [base ** (start + step * i) for i in frange(num)])
+        return Array(typecode, [base ** (start + step * i) for i in frange(num)])
 
     @staticmethod
     def random(typecode, size):
