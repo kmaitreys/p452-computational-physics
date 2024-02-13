@@ -96,6 +96,8 @@ class Array(array):
         raise NotImplementedError("Random number generation is not implemented yet.")
 
 
+
+
 class Matrix:
     def __init__(self, rows, cols):
         self.rows = rows
