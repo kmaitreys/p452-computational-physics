@@ -122,6 +122,41 @@ class Matrix:
         else:
             return Array(self.data[i][i] for i in range(self.rows))
 
+    def __getitem__(self, key):
+        if isinstance(key, tuple):
+            row, col = key
+            if isinstance(row, slice) and isinstance(col, slice):
+                return [
+                    [
+                        self.data[i][j]
+                        for j in range(
+                            col.start or 0, col.stop or self.cols, col.step or 1
+                        )
+                    ]
+                    for i in range(row.start or 0, row.stop or self.rows, row.step or 1)
+                ]
+            elif isinstance(row, slice):
+                return [
+                    self.data[i][col]
+                    for i in range(row.start or 0, row.stop or self.rows, row.step or 1)
+                ]
+            elif isinstance(col, slice):
+                return [
+                    self.data[row][j]
+                    for j in range(col.start or 0, col.stop or self.cols, col.step or 1)
+                ]
+            else:
+                return self.data[row][col]
+        else:
+            return self.data[key]
+
+    def __setitem__(self, key, value):
+        if isinstance(key, tuple):
+            row, col = key
+            self.data[row][col] = value
+        else:
+            self.data[key] = value
+
     def __add__(self, other):
         if isinstance(other, Matrix):
             if self.rows != other.rows or self.cols != other.cols:
@@ -158,21 +193,6 @@ class Matrix:
             return result
         else:
             raise ValueError("Matrix can only be multiplied by another Matrix")
-    
-    def __setitem__(self, key, value):
-        # Set a value at a given index
-        if isinstance(key, tuple):
-            i, j = key
-            self.data[i][j] = value
-        # Set a row
-        if isinstance(key, int):
-            self.data[key] = value
-
-    def __getitem__(self, key):
-        # Get a value at a given index
-        if isinstance(key, tuple):
-            i, j = key
-            return self.data[i][j]
 
     def invert(self):
         if self.rows != self.cols:
