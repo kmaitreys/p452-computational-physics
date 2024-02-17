@@ -12,6 +12,7 @@ from typing import Callable, Tuple
 
 from .datamodels import Array
 
+# TODO: Encaspuale the following functions in a NewtonCotes class
 
 def midpoint():
     pass
