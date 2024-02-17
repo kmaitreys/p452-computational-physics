@@ -7,7 +7,7 @@ using various methods.
 from typing import Callable, Tuple
 
 
-def bisection(func: Callable, bounds: Tuple[float, float], N):
+def bisection(func: Callable, bounds: Tuple[float, float], max_iter):
     """Approximate solution of f(x)=0 on interval [a,b] by bisection method.
 
     Parameters
@@ -17,7 +17,7 @@ def bisection(func: Callable, bounds: Tuple[float, float], N):
     bounds : tuple
         The interval [a,b] in which to search for a solution. The function
         returns None if f(a)*f(b) >= 0 since a solution is not guaranteed.
-    N : (positive) integer
+    max_iter : (positive) integer
         The number of iterations to implement.
 
     Returns
@@ -44,7 +44,7 @@ def bisection(func: Callable, bounds: Tuple[float, float], N):
         return None
     a_n = a
     b_n = b
-    for n in range(1, N + 1):
+    for n in range(1, max_iter + 1):
         m_n = (a_n + b_n) / 2
         f_m_n = func(m_n)
         if func(a_n) * f_m_n < 0:
@@ -60,6 +60,43 @@ def bisection(func: Callable, bounds: Tuple[float, float], N):
             print("Bisection method fails.")
             return None
     return (a_n + b_n) / 2
+
+
+def regula_falsi(func: Callable, bounds: Tuple[float, float], tol=1e-6, max_iter=1000):
+    """
+    Regula Falsi method to find root of a function.
+
+    Parameters
+    ----------
+    func : function
+        The function for which roots need to be found.
+    bounds : tuple
+        The interval in which to search for a solution. The function
+        returns None if f(a)*f(b) >= 0 since a solution is not guaranteed.
+    tol : float
+        The tolerance for the root.
+    max_iter : int
+        The maximum number of iterations to perform.
+
+    Returns
+    -------
+    float
+        The root of the function.
+    """
+    a, b = bounds
+    if func(a) * func(b) >= 0:
+        raise ValueError("Function has same signs at both ends of the interval.")
+
+    for _ in range(max_iter):
+        c = (a * func(b) - b * func(a)) / (func(b) - func(a))
+        if abs(func(c)) < tol:
+            return c
+        if func(c) * func(a) < 0:
+            b = c
+        else:
+            a = c
+
+    raise ValueError("Method did not converge within maximum iterations.")
 
 
 def fixed_point(func: Callable, x0: float, tol: float, maxiter: int) -> float:
