@@ -54,3 +54,19 @@ def runge_kutta_4th_order(
 
 
 # TODO: Higher order Runge-Kutta methods
+
+def semi_implicit_euler():
+    pass
+
+def verlet():
+    pass
+
+def leap_frog():
+    pass
+
+def shooting_method():
+    pass
+
+def finite_difference():
+    pass
+
