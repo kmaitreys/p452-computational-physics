@@ -135,3 +135,15 @@ def fixed_point(func: Callable, x0: float, tol: float, maxiter: int) -> float:
     raise RuntimeError(
         "Failed to converge. Try increasing the maximum number of iterations."
     )
+
+def newton_raphson():
+    pass
+
+def secant():
+    pass
+
+def broyden():
+    pass
+
+def brent(): 
+    pass
