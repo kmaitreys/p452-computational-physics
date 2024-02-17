@@ -13,6 +13,14 @@ from typing import Callable, Tuple
 from .datamodels import Array
 
 
+def midpoint():
+    pass
+
+
+def trapezoidal():
+    pass
+
+
 def simpson(
     func: Callable,
     bounds: Tuple[float, float],
