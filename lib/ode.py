@@ -8,6 +8,15 @@ from typing import Callable, Tuple
 from .datamodels import Array
 
 
+def forward_euler():
+    pass
+
+def backward_euler():
+    pass
+
+def predictor_corrector():
+    pass
+
 def runge_kutta_4th_order(
     func: Callable,
     t0: float,
@@ -42,3 +51,22 @@ def runge_kutta_4th_order(
         y_evals[i + 1] = y
 
     return time_steps, y_evals
+
+
+# TODO: Higher order Runge-Kutta methods
+
+def semi_implicit_euler():
+    pass
+
+def verlet():
+    pass
+
+def leap_frog():
+    pass
+
+def shooting_method():
+    pass
+
+def finite_difference():
+    pass
+

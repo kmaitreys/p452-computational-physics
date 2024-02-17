@@ -1,4 +1,6 @@
 """
+DEPRECATED: This module is deprecated and will be removed in the future.
+
 This module contains functions to
 plotting utilities for the computational
 physics course.

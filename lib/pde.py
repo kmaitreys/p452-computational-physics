@@ -192,7 +192,8 @@ class HeatDiffusion:
         # Show the plot
         plt.show()
 
-
+class LaplaceEquation:
+    pass
 class PoissonEquation:
     """
     This class models the Poisson equation
@@ -338,3 +339,7 @@ class PoissonEquation:
 
         # Show the plot
         plt.show()
+
+
+class WaveEquation:
+    pass

@@ -12,6 +12,15 @@ from typing import Callable, Tuple
 
 from .datamodels import Array
 
+# TODO: Encaspuale the following functions in a NewtonCotes class
+
+def midpoint():
+    pass
+
+
+def trapezoidal():
+    pass
+
 
 def simpson(
     func: Callable,
@@ -145,4 +154,8 @@ def gaussian_quadrature(func: Callable, bounds: Tuple[float, float]):
             "Change the limits of integration to -inf and inf, -1 and 1, or 0 and inf."
         )
 
-    method = get_quadrature_method(bounds)
+    # method = get_quadrature_method(bounds)
+
+
+def monte_carlo():
+    pass
