@@ -5,7 +5,6 @@ to model the problems for the computational
 physics course.
 """
 
-
 from array import array
 from typing import Self
 
@@ -126,10 +125,10 @@ class Array(array):
 
     def __rmul__(self, other: int | float) -> Self:
         return self.__mul__(other)
-    
+
     def __repr__(self) -> str:
         # Make a more pretty representation of the array
-        type_dict ={
+        type_dict = {
             "b": "char",
             "B": "uchar",
             "h": "short",
@@ -141,14 +140,10 @@ class Array(array):
             "q": "longlong",
             "Q": "ulonglong",
             "f": "float",
-            "d": "double"
+            "d": "double",
         }
         return f"({list(self)}, {type_dict[self.typecode]})"
 
-a = Array("d", [1, 2, 3])
-b = 0.0 * a
-
-print(b)
 
 class Matrix:
     """
@@ -171,21 +166,21 @@ class Matrix:
         return result
 
     def transpose(self):
-        result = Matrix(self.cols, self.rows)
-        for i in range(self.rows):
-            for j in range(self.cols):
+        result = Matrix(self.ncols, self.nrows)
+        for i in range(self.nrows):
+            for j in range(self.ncols):
                 result.data[j][i] = self.data[i][j]
         return result
 
     def diag(self, offset=0):
-        if self.rows != self.cols:
+        if self.nrows != self.ncols:
             raise ValueError("Matrix must be square")
         if offset > 0:
             return Array(self.data[0][offset:] + [0] * offset)
         elif offset < 0:
             return Array(
                 [0] * -offset
-                + [self.data[i][-offset] for i in range(-offset, self.rows)]
+                + [self.data[i][-offset] for i in range(-offset, self.nrows)]
             )
         else:
             return Array(self.data[i][i] for i in range(self.nrows))
@@ -212,20 +207,26 @@ class Matrix:
                     [
                         self.data[i][j]
                         for j in range(
-                            col.start or 0, col.stop or self.cols, col.step or 1
+                            col.start or 0, col.stop or self.ncols, col.step or 1
                         )
                     ]
-                    for i in range(row.start or 0, row.stop or self.rows, row.step or 1)
+                    for i in range(
+                        row.start or 0, row.stop or self.nrows, row.step or 1
+                    )
                 ]
             elif isinstance(row, slice):
                 return [
                     self.data[i][col]
-                    for i in range(row.start or 0, row.stop or self.rows, row.step or 1)
+                    for i in range(
+                        row.start or 0, row.stop or self.nrows, row.step or 1
+                    )
                 ]
             elif isinstance(col, slice):
                 return [
                     self.data[row][j]
-                    for j in range(col.start or 0, col.stop or self.cols, col.step or 1)
+                    for j in range(
+                        col.start or 0, col.stop or self.ncols, col.step or 1
+                    )
                 ]
             else:
                 return self.data[row][col]
@@ -241,11 +242,11 @@ class Matrix:
 
     def __add__(self, other):
         if isinstance(other, Matrix):
-            if self.rows != other.rows or self.cols != other.cols:
+            if self.nrows != other.nrows or self.ncols != other.ncols:
                 raise ValueError("Matrix dimensions must be the same")
-            result = Matrix(self.rows, self.cols)
-            for i in range(self.rows):
-                for j in range(self.cols):
+            result = Matrix(self.nrows, self.ncols)
+            for i in range(self.nrows):
+                for j in range(self.ncols):
                     result.data[i][j] = self.data[i][j] + other.data[i][j]
             return result
         else:
@@ -253,11 +254,11 @@ class Matrix:
 
     def __sub__(self, other):
         if isinstance(other, Matrix):
-            if self.rows != other.rows or self.cols != other.cols:
+            if self.nrows != other.nrows or self.ncols != other.ncols:
                 raise ValueError("Matrix dimensions must be the same")
-            result = Matrix(self.rows, self.cols)
-            for i in range(self.rows):
-                for j in range(self.cols):
+            result = Matrix(self.nrows, self.ncols)
+            for i in range(self.nrows):
+                for j in range(self.ncols):
                     result.data[i][j] = self.data[i][j] - other.data[i][j]
             return result
         else:
@@ -265,32 +266,32 @@ class Matrix:
 
     def __mul__(self, other):
         if isinstance(other, Matrix):
-            if self.cols != other.rows:
+            if self.ncols != other.nrows:
                 raise ValueError("Matrix dimensions must be compatible")
-            result = Matrix(self.rows, other.cols)
-            for i in range(self.rows):
-                for j in range(other.cols):
-                    for k in range(self.cols):
+            result = Matrix(self.nrows, other.ncols)
+            for i in range(self.nrows):
+                for j in range(other.ncols):
+                    for k in range(self.ncols):
                         result.data[i][j] += self.data[i][k] * other.data[k][j]
             return result
         else:
             raise ValueError("Matrix can only be multiplied by another Matrix")
 
     def invert(self):
-        if self.rows != self.cols:
+        if self.nrows != self.ncols:
             raise ValueError("Matrix must be square")
-        result = Matrix(self.rows, self.cols)
-        for i in range(self.rows):
+        result = Matrix(self.nrows, self.ncols)
+        for i in range(self.nrows):
             result.data[i][i] = 1
-        for i in range(self.rows):
+        for i in range(self.nrows):
             factor = 1 / self.data[i][i]
-            for j in range(self.cols):
+            for j in range(self.ncols):
                 self.data[i][j] *= factor
                 result.data[i][j] *= factor
-            for k in range(self.rows):
+            for k in range(self.nrows):
                 if k != i:
                     factor = -self.data[k][i]
-                    for j in range(self.cols):
+                    for j in range(self.ncols):
                         self.data[k][j] += factor * self.data[i][j]
                         result.data[k][j] += factor * result.data[i][j]
         return result
@@ -299,4 +300,4 @@ class Matrix:
         return "\n".join(" ".join(str(x) for x in row) for row in self.data)
 
     def __repr__(self):
-        return f"Matrix({self.rows}, {self.cols})"
+        return f"Matrix({self.nrows}, {self.ncols})"
