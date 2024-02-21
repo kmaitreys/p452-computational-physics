@@ -151,10 +151,24 @@ b = 0.0 * a
 print(b)
 
 class Matrix:
-    def __init__(self, rows, cols):
-        self.rows = rows
-        self.cols = cols
-        self.data = [[0] * cols for _ in range(rows)]
+    """
+    The Matrix class.
+    """
+
+    def __init__(self, nrows, ncols):
+        self.nrows = nrows
+        self.ncols = ncols
+        self.data = [Array("d", [0] * ncols) for _ in range(nrows)]
+
+    @classmethod
+    def from_list(cls, data):
+        nrows = len(data)
+        ncols = len(data[0])
+        result = cls(nrows, ncols)
+        for i in range(nrows):
+            for j in range(ncols):
+                result.data[i][j] = data[i][j]
+        return result
 
     def transpose(self):
         result = Matrix(self.cols, self.rows)
