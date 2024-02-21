@@ -188,7 +188,21 @@ class Matrix:
                 + [self.data[i][-offset] for i in range(-offset, self.rows)]
             )
         else:
-            return Array(self.data[i][i] for i in range(self.rows))
+            return Array(self.data[i][i] for i in range(self.nrows))
+
+    @property
+    def rows(self):
+        return [row for row in self.data]
+
+    @property
+    def cols(self):
+        return [[self.data[i][j] for i in range(self.nrows)] for j in range(self.ncols)]
+
+    @property
+    def trace(self):
+        if self.nrows != self.ncols:
+            raise ValueError("Matrix must be square")
+        return sum(self.data[i][i] for i in range(self.nrows))
 
     def __getitem__(self, key):
         if isinstance(key, tuple):
