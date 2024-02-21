@@ -7,6 +7,7 @@ physics course.
 
 
 from array import array
+from typing import Self
 
 
 def frange(start, stop=None, step=None):
@@ -95,8 +96,59 @@ class Array(array):
     def random(typecode, size):
         raise NotImplementedError("Random number generation is not implemented yet.")
 
+    def __add__(self, other: Self) -> Self:
+        if isinstance(other, Array):
+            return Array(self.typecode, [x + y for x, y in zip(self, other)])
+        else:
+            raise ValueError("Array can only be added to another Array")
 
+    def __radd__(self, other: int | float) -> Self:
+        return self.__add__(other)
 
+    def __sub__(self, other: Self) -> Self:
+        if isinstance(other, Array):
+            return Array(self.typecode, [x - y for x, y in zip(self, other)])
+        else:
+            raise ValueError("Array can only be subtracted from another Array")
+
+    def __rsub__(self, other: int | float) -> Self:
+        return self.__sub__(other)
+
+    def __mul__(self, other: Self | int | float) -> Self:
+        if isinstance(other, (int, float)):
+            return Array(self.typecode, [x * other for x in self])
+        elif isinstance(other, Array):
+            return Array(self.typecode, [x * y for x, y in zip(self, other)])
+        else:
+            raise ValueError(
+                "Array can only be multiplied by a scalar or another Array"
+            )
+
+    def __rmul__(self, other: int | float) -> Self:
+        return self.__mul__(other)
+    
+    def __repr__(self) -> str:
+        # Make a more pretty representation of the array
+        type_dict ={
+            "b": "char",
+            "B": "uchar",
+            "h": "short",
+            "H": "ushort",
+            "i": "int",
+            "I": "uint",
+            "l": "long",
+            "L": "ulong",
+            "q": "longlong",
+            "Q": "ulonglong",
+            "f": "float",
+            "d": "double"
+        }
+        return f"({list(self)}, {type_dict[self.typecode]})"
+
+a = Array("d", [1, 2, 3])
+b = 0.0 * a
+
+print(b)
 
 class Matrix:
     def __init__(self, rows, cols):
