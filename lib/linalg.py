@@ -2,6 +2,27 @@ from datamodels import Array, Matrix
 
 
 class GaussJordan:
+    """
+    Solve a system of linear equations using the Gauss-Jordan Elimination method.
+    The system is represented as `Ax = b`, where `A` is a matrix of coefficients, 
+    `x` is the vector of unknowns, which we want to solve for, and `b` is the vector
+    of constants. 
+
+    Attributes
+    ----------
+    matrix : Matrix
+        The matrix of coefficients
+    vector : Array
+        The vector of constants
+
+
+    Methods
+    -------
+    solve()
+        Solve the system of linear equations using the Gauss-Jordan Elimination method.
+    
+        
+    """
     def __init__(self, matrix: Matrix, vector: Array):
         self.matrix = matrix
         self.vector = vector
