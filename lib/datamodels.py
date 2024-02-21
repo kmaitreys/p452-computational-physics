@@ -148,6 +148,36 @@ class Array(array):
 class Matrix:
     """
     The Matrix class.
+
+    Attributes
+    ----------
+    nrows : int
+        The number of rows in the matrix
+    ncols : int
+        The number of columns in the matrix
+    data : list
+        The list of Array objects representing the matrix
+    rows : list
+        The list of rows of the matrix
+    cols : list
+        The list of columns of the matrix
+    trace : float
+        The trace of the matrix
+    
+    Methods
+    -------
+    from_list(data)
+        Create a matrix from a list of lists.
+    
+    transpose()
+        Return the transpose of the matrix.
+    
+    diag(offset=0)
+        Return the diagonal of the matrix.
+    
+    invert()
+        Return the inverse of the matrix.
+
     """
 
     def __init__(self, nrows, ncols):
