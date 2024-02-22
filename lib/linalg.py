@@ -140,7 +140,7 @@ lu = LUSolve(
         ]
     ),
     vector=Array("d", [1, -2, 3]),
-    method="doolittle"
+    method="crout"
 )
 
 sol = lu.solve()
