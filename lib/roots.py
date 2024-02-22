@@ -7,6 +7,15 @@ using various methods.
 from typing import Callable, Tuple
 
 
+def derivative(func: Callable, x: float, order: int = 1, h: float = 1e-8) -> float:
+    if order == 1:
+        dfunc = (func(x + h) - func(x)) / h
+        return dfunc
+    elif order == 2:
+        d2func = (func(x + h) - 2 * func(x) + func(x - h)) / h**2
+        return d2func
+
+
 def bisection(func: Callable, bounds: Tuple[float, float], max_iter):
     """Approximate solution of f(x)=0 on interval [a,b] by bisection method.
 
@@ -136,14 +145,52 @@ def fixed_point(func: Callable, x0: float, tol: float, maxiter: int) -> float:
         "Failed to converge. Try increasing the maximum number of iterations."
     )
 
-def newton_raphson():
-    pass
 
-def secant():
-    pass
+def newton_raphson(
+    func: Callable, x0: float, tol: float = 1e-6, maxiter: int = 1000
+) -> float:
+    """
+    The Newton-Raphson method to find the root of a function.
+    """
+    x_n = x0
+    k = 0
+    x = x0 - func(x0) / derivative(func, x0, order=1)
+    while abs(x - x_n) > tol and k < maxiter:
+        x_n = x
+        x = x - func(x) / derivative(func, x, order=1)
+        k += 1
+
+    return x
+
+
+def secant(func: Callable, x0: float, x1: float, tol: float = 1e-8, maxiter: int = 100):
+    """
+    Secant method to find the root of a function.
+    """
+    x_prev = x0
+    x_curr = x1
+
+    for _ in range(maxiter):
+        f_prev = func(x_prev)
+        f_curr = func(x_curr)
+
+        if abs(f_curr) < tol:
+            return x_curr
+
+        x_next = x_curr - f_curr * (x_curr - x_prev) / (f_curr - f_prev)
+
+        if abs(x_next - x_curr) < tol:
+            return x_next
+    
+        x_prev = x_curr
+        x_curr = x_next
+    
+    raise ValueError("Method did not converge within maximum iterations.")
+
 
 def broyden():
     pass
 
-def brent(): 
+
+def brent():
     pass

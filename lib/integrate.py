@@ -12,14 +12,104 @@ from typing import Callable, Tuple
 
 from .datamodels import Array
 
+
+def get_max_steps(func, a, b, tol, method, *args):
+    """
+    Get the maximum number of steps to use in the integration.
+    """
+    func_max = get_function_maximum_derivative(func, a, b, *args)
+
+    # Calculation of N from error calculation formula
+    if method == "midpoint":
+        N_mp = int(((b - a) ** 3 / 24 / tol * func_max) ** 0.5)
+
+        if N_mp == 0:
+            N_mp = 1
+
+        return N_mp
+    elif method == "trapezoidal":
+        N_t = int(((b - a) ** 3 / 12 / tol * func_max) ** 0.5)
+
+        if N_t == 0:
+            N_t = 1
+
+        return N_t
+
+
+def get_function_maximum_derivative(func, a, b, order=2, *args):
+    h = (b - a) / 1000
+    x = [a + i * h for i in range(1000)]
+    y = []
+
+    if order == 2:
+        for i in range(len(x)):
+            # calculate the 2nd derivative of f(x) using the central difference method
+            y.append(
+                abs(
+                    (
+                        func(x[i] + h, *args)
+                        - 2 * func(x[i], *args)
+                        + func(x[i] - h, *args)
+                    )
+                    / h**2
+                )
+            )
+
+        return max(y)
+
+    if order == 4:
+        for i in range(len(x)):
+            # calculate the 4th derivative of f(x) using the central difference method
+            y.append(
+                abs(
+                    (
+                        func(x[i] + 2 * h, *args)
+                        - 4 * func(x[i] + h, *args)
+                        + 6 * func(x[i], *args)
+                        - 4 * func(x[i] - h, *args)
+                        + func(x[i] - 2 * h, *args)
+                    )
+                    / h**4
+                )
+            )
+
+        return max(y)
+
+
 # TODO: Encaspuale the following functions in a NewtonCotes class
 
-def midpoint():
-    pass
+
+def midpoint(func: Callable, bounds: Tuple[float, float], tol: float = 1e-6, *args):
+    """
+    Midpoint rule.
+    """
+    N = get_max_steps(func, bounds[0], bounds[1], tol, method="midpoint", *args)
+    s = 0
+    step_size = (bounds[1] - bounds[0]) / N
+
+    for i in range(N):
+        x = bounds[0] + (2 * i - 1) * step_size / 2
+        s += func(x)
+
+    sol = step_size * s
+
+    return sol
 
 
-def trapezoidal():
-    pass
+def trapezoidal(func: Callable, bounds: Tuple[float, float], tol: float = 1e-6, *args):
+    """
+    Trapezoidal rule.
+    """
+    N = get_max_steps(func, bounds[0], bounds[1], tol, method="trapezoidal", *args)
+    s = 0
+    step_size = (bounds[1] - bounds[0]) / N
+
+    for i in range(1, N + 1):
+        s += func(bounds[0] + i * step_size) + func(bounds[0] + (i - 1) * step_size)
+
+    sol = s * step_size / 2
+
+    return sol
 
 
 def simpson(
