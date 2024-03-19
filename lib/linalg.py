@@ -80,11 +80,26 @@ class LUSolve:
         self.matrix = matrix
         self.vector = vector
         self.method = method
-        self.pivmat = None
+        self.pivmat = Matrix(matrix.nrows, matrix.ncols)
+        self.rref = Matrix(matrix.nrows, matrix.ncols)
 
     def solve(self):
+        # Set pivot matrix
+        self.pivmat = Matrix.identity(self.matrix.nrows)
+
+        for j in range(self.matrix.nrows):
+            r = max(range(j, self.matrix.nrows), key=lambda i: abs(self.matrix[i, j]))
+            if j != r:
+                # Swap rows
+                self.pivmat[j], self.pivmat[r] = self.pivmat[r], self.pivmat[j]
+
+        self.rref = self.pivmat * self.matrix
+        print(self.rref)
         lower, upper = self.decompose()
-        
+        print()
+        print(lower)
+        print()
+        print(upper)
         # Forward substitution
         n = self.matrix.nrows
         y = Array.zeros("d", n)
@@ -92,16 +107,16 @@ class LUSolve:
         for i in range(1, n):
             sum_1 = sum(lower[i, j] * y[j] for j in range(i))
             y[i] = (self.vector[i] - sum_1) / lower[i, i]
-        
+
         # Back substitution
         x = Array.zeros("d", n)
-        x[n-1] = y[n-1] / upper[n-1, n-1]
-        for i in range(n-2, -1, -1):
-            sum_2 = sum(upper[i, j] * x[j] for j in range(i+1, n))
+        x[n - 1] = y[n - 1] / upper[n - 1, n - 1]
+        for i in range(n - 2, -1, -1):
+            sum_2 = sum(upper[i, j] * x[j] for j in range(i + 1, n))
             x[i] = (y[i] - sum_2) / upper[i, i]
 
         return x
-    
+
     def decompose(self):
         lower = Matrix(self.matrix.nrows, self.matrix.ncols)
         upper = Matrix(self.matrix.nrows, self.matrix.ncols)
@@ -109,38 +124,41 @@ class LUSolve:
             for k in range(self.matrix.nrows):
                 upper[k, k] = 1.0
                 for j in range(k, self.matrix.nrows):
-                    sum_1 = sum(lower[k, s] * upper[s, j] for s in range(1, k-1))
-                    lower[j, k] = self.matrix[k, k] - sum_1
-                
-                for j in range(self.matrix.nrows):
-                    sum_2 = sum(lower[k, s] * upper[s, j] for s in range(1, k-1))
-                    upper[k, j] = (self.matrix[k, j] - sum_2) / lower[k, k]
+                    sum_1 = sum(lower[j, s] * upper[s, k] for s in range(k))
+                    lower[j, k] = self.rref[j, k] - sum_1
+
+                for j in range(k + 1, self.matrix.nrows):
+                    sum_2 = sum(lower[k, s] * upper[s, j] for s in range(k))
+                    upper[k, j] = (self.rref[k, j] - sum_2) / lower[k, k]
 
             return lower, upper
         elif self.method == "doolittle":
             for k in range(self.matrix.nrows):
                 lower[k, k] = 1.0
                 for j in range(k, self.matrix.nrows):
-                    sum_1 = sum(lower[k, s] * upper[s, j] for s in range(1, k-1))
-                    upper[k, j] = self.matrix[k, j] - sum_1
-                
-                for j in range(self.matrix.nrows):
-                    sum_2 = sum(lower[k, s] * upper[s, j] for s in range(1, k-1))
-                    lower[j, k] = (self.matrix[j, k] - sum_2) / upper[k, k]
-            
+                    sum_1 = sum(lower[j, s] * upper[s, k] for s in range(0, k))
+                    upper[j, k] = self.rref[j, k] - sum_1
+
+                for j in range(k+1, self.matrix.nrows):
+                    sum_2 = sum(lower[k, s] * upper[s, j] for s in range(0, k))
+                    lower[k, j] = (self.rref[k, j] - sum_2) / upper[k, k]
+
             return lower, upper
 
 
-lu = LUSolve(
-    matrix=Matrix.from_list(
-        [
-            [0, 2, 5],
-            [3, -1, 2],
-            [1, -1, 3]
-        ]
-    ),
+gj = GaussJordan(
+    matrix=Matrix.from_list([[0, 2, 5], [3, -1, 2], [1, -1, 3]]),
     vector=Array("d", [1, -2, 3]),
-    method="doolittle"
+)
+
+sol = gj.solve()
+print(sol)
+
+
+lu = LUSolve(
+    matrix=Matrix.from_list([[0, 2, 5], [3, -1, 2], [1, -1, 3]]),
+    vector=Array("d", [1, -2, 3]),
+    method="doolittle",
 )
 
 sol = lu.solve()

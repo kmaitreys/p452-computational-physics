@@ -186,6 +186,13 @@ class Matrix:
         self.data = [Array("d", [0] * ncols) for _ in range(nrows)]
 
     @classmethod
+    def identity(cls, size):
+        result = cls(size, size)
+        for i in range(size):
+            result.data[i][i] = 1
+        return result
+
+    @classmethod
     def from_list(cls, data):
         nrows = len(data)
         ncols = len(data[0])
@@ -331,3 +338,4 @@ class Matrix:
 
     def __repr__(self):
         return f"Matrix({self.nrows}, {self.ncols})"
+

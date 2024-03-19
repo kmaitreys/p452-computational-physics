@@ -11,6 +11,158 @@ import matplotlib.pyplot as plt
 from .datamodels import Array, Matrix
 
 
+class LaplaceEquation:
+    pass
+
+
+class PoissonEquation:
+    """
+    This class models the Poisson equation
+    by the finite difference method.
+
+    The Dirichlet boundary conditions are assumed.
+
+    TODO: Add Neumann boundary conditions and extend the class.
+    """
+
+    def __init__(
+        self,
+        x_bounds: Tuple[float, float],
+        y_bounds: Tuple[float, float],
+        M: int,
+        N: int,
+    ):
+        self.x_bounds = x_bounds
+        self.y_bounds = y_bounds
+        self.M = M
+        self.N = N
+
+        self.m = M + 1
+        self.n = N + 1
+
+        self.mn = self.m * self.n
+
+        self.h = (self.x_bounds[1] - self.x_bounds[0]) / self.M
+        self.k = (self.y_bounds[1] - self.y_bounds[0]) / self.N
+
+        self.u = Array.zeros("d", self.mn)
+
+    def intial_condition(self, x, y):
+        return 0
+
+    def dirichlet_boundary_conditions(
+        self, left: Callable, right: Callable, bottom: Callable, top: Callable
+    ):
+        self.top = top
+        self.bottom = bottom
+        self.left = left
+        self.right = right
+
+    def thomas_algorithm(self, A: Matrix, b: Array):
+        """
+        Native Python implementation of the Thomas algorithm.
+        It solves tridiagonal matrices of the form Ax = b.
+        """
+        N = len(b)
+        c = Array.zeros("d", N - 1)
+        d = Array.zeros("d", N)
+        x = Array.zeros("d", N)
+
+        # Forward elimination
+        c[0] = A[0, 1] / A[0, 0]
+        d[0] = b[0] / A[0, 0]
+        for i in range(1, N - 1):
+            c[i] = A[i, i + 1] / (A[i, i] - A[i, i - 1] * c[i - 1])
+        for i in range(1, N):
+            d[i] = (b[i] - A[i, i - 1] * d[i - 1]) / (A[i, i] - A[i, i - 1] * c[i - 1])
+        x[N - 1] = d[N - 1]
+        for i in range(N - 1, 0, -1):
+            x[i - 1] = d[i - 1] - c[i - 1] * x[i]
+        return x
+
+    def solve(self):
+        # Set the mesh
+        import numpy as np
+
+        x = np.linspace(self.x_bounds[0], self.x_bounds[1], self.m)
+        y = np.linspace(self.y_bounds[0], self.y_bounds[1], self.n)
+
+        A = Matrix(self.mn, self.mn)
+        b = Array.zeros("d", self.mn)
+
+        for i in range(1, self.m - 1):
+            for j in range(1, self.n - 1):
+                A[i + (j - 1) * self.m, i - 1 + (j - 1) * self.m] = 1 / self.h**2
+                A[i + (j - 1) * self.m, i + 1 + (j - 1) * self.m] = 1 / self.h**2
+                A[i + (j - 1) * self.m, i + (j - 1) * self.m] = (
+                    -2 / self.h**2 - 2 / self.k
+                )
+                A[i + (j - 1) * self.m, i + (j - 2) * self.m] = 1 / self.k**2
+                A[i + (j - 1) * self.m, i + j * self.m] = 1 / self.k**2
+                b[i + (j - 1) * self.m] = self.intial_condition(x[i], y[j])
+
+        for i in range(self.m):
+            j = 0
+            A[i + (j - 1) * self.m, i + (j - 1) * self.m] = 1
+            b[i + (j - 1) * self.m] = self.bottom(x[i])
+            j = self.n - 1
+            A[i + (j - 1) * self.m, i + (j - 1) * self.m] = 1
+            b[i + (j - 1) * self.m] = self.top(x[i])
+
+        for j in range(1, self.n - 1):
+            i = 0
+            A[i + (j - 1) * self.m, i + (j - 1) * self.m] = 1
+            b[i + (j - 1) * self.m] = self.left(y[j])
+            i = self.m - 1
+            A[i + (j - 1) * self.m, i + (j - 1) * self.m] = 1
+            b[i + (j - 1) * self.m] = self.right(y[j])
+
+        self.u = self.thomas_algorithm(A, b)
+
+    def tabulate_solution(self):
+        """
+        Tabulate the solution at specific time points.
+        """
+        # Create a table so the output looks pretty
+        print(f"{'Space':<10}{'Space':<10}{'Temperature':<10}")
+        for j in range(self.n):
+            for i in range(self.m):
+                # Print in scientific notation
+                print(
+                    f"{self.x_bounds[0] + i * self.h:<10.2f}"
+                    f"{self.y_bounds[0] + j * self.k:<10.2f}"
+                    f"{self.u[i + j * self.m]:<10.2e}"
+                )
+            print()
+
+    def plot_solution(self):
+        # Make a 3D surface plot
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection="3d")
+        import numpy as np
+
+        x = np.linspace(self.x_bounds[0], self.x_bounds[1], self.m)
+        y = np.linspace(self.y_bounds[0], self.y_bounds[1], self.n)
+
+        # Create a meshgrid
+        X, Y = np.meshgrid(x, y)
+
+        self.u = np.array(self.u)
+
+        # Plot the surface
+        ax.plot_surface(X, Y, self.u.reshape(self.m, self.n).transpose().data)
+
+        # Set the x-axis and y-axis labels
+        ax.set_xlabel("Space")
+        ax.set_ylabel("Time")
+
+        # Set the title of the plot
+        ax.set_title("Poisson equation")
+
+        # Show the plot
+        plt.show()
+
+
 class HeatDiffusion:
     """
     This class models the heat diffusion equation
@@ -188,154 +340,6 @@ class HeatDiffusion:
 
         # Show the colorbar
         plt.colorbar()
-
-        # Show the plot
-        plt.show()
-
-class LaplaceEquation:
-    pass
-class PoissonEquation:
-    """
-    This class models the Poisson equation
-    by the finite difference method.
-
-    The Dirichlet boundary conditions are assumed.
-
-    TODO: Add Neumann boundary conditions and extend the class.
-    """
-
-    def __init__(
-        self,
-        x_bounds: Tuple[float, float],
-        y_bounds: Tuple[float, float],
-        M: int,
-        N: int,
-    ):
-        self.x_bounds = x_bounds
-        self.y_bounds = y_bounds
-        self.M = M
-        self.N = N
-
-        self.m = M + 1
-        self.n = N + 1
-
-        self.mn = self.m * self.n
-
-        self.h = (self.x_bounds[1] - self.x_bounds[0]) / self.M
-        self.k = (self.y_bounds[1] - self.y_bounds[0]) / self.N
-
-        self.u = Array.zeros("d", self.mn)
-
-    def intial_condition(self, x, y):
-        return 0
-
-    def dirichlet_boundary_conditions(
-        self, left: Callable, right: Callable, bottom: Callable, top: Callable
-    ):
-        self.top = top
-        self.bottom = bottom
-        self.left = left
-        self.right = right
-
-    def thomas_algorithm(self, A: Matrix, b: Array):
-        """
-        Native Python implementation of the Thomas algorithm.
-        It solves tridiagonal matrices of the form Ax = b.
-        """
-        N = len(b)
-        c = Array.zeros("d", N - 1)
-        d = Array.zeros("d", N)
-        x = Array.zeros("d", N)
-
-        # Forward elimination
-        c[0] = A[0, 1] / A[0, 0]
-        d[0] = b[0] / A[0, 0]
-        for i in range(1, N - 1):
-            c[i] = A[i, i + 1] / (A[i, i] - A[i, i - 1] * c[i - 1])
-        for i in range(1, N):
-            d[i] = (b[i] - A[i, i - 1] * d[i - 1]) / (A[i, i] - A[i, i - 1] * c[i - 1])
-        x[N - 1] = d[N - 1]
-        for i in range(N - 1, 0, -1):
-            x[i - 1] = d[i - 1] - c[i - 1] * x[i]
-        return x
-
-    def solve(self):
-        # Set the mesh
-        import numpy as np
-        x = np.linspace(self.x_bounds[0], self.x_bounds[1], self.m)
-        y = np.linspace(self.y_bounds[0], self.y_bounds[1], self.n)
-
-        A = Matrix(self.mn, self.mn)
-        b = Array.zeros("d", self.mn)
-
-        for i in range(1, self.m - 1):
-            for j in range(1, self.n - 1):
-                A[i + (j - 1) * self.m, i - 1 + (j - 1) * self.m] = 1 / self.h**2
-                A[i + (j - 1) * self.m, i + 1 + (j - 1) * self.m] = 1 / self.h**2
-                A[i + (j - 1) * self.m, i + (j - 1) * self.m] = (
-                    -2 / self.h**2 - 2 / self.k
-                )
-                A[i + (j - 1) * self.m, i + (j - 2) * self.m] = 1 / self.k**2
-                A[i + (j - 1) * self.m, i + j * self.m] = 1 / self.k**2
-                b[i + (j - 1) * self.m] = self.intial_condition(x[i], y[j])
-
-        for i in range(self.m):
-            j = 0
-            A[i + (j - 1) * self.m, i + (j - 1) * self.m] = 1
-            b[i + (j - 1) * self.m] = self.bottom(x[i])
-            j = self.n - 1
-            A[i + (j - 1) * self.m, i + (j - 1) * self.m] = 1
-            b[i + (j - 1) * self.m] = self.top(x[i])
-
-        for j in range(1, self.n - 1):
-            i = 0
-            A[i + (j - 1) * self.m, i + (j - 1) * self.m] = 1
-            b[i + (j - 1) * self.m] = self.left(y[j])
-            i = self.m - 1
-            A[i + (j - 1) * self.m, i + (j - 1) * self.m] = 1
-            b[i + (j - 1) * self.m] = self.right(y[j])
-
-        self.u = self.thomas_algorithm(A, b)
-
-    def tabulate_solution(self):
-        """
-        Tabulate the solution at specific time points.
-        """
-        # Create a table so the output looks pretty
-        print(f"{'Space':<10}{'Space':<10}{'Temperature':<10}")
-        for j in range(self.n):
-            for i in range(self.m):
-                # Print in scientific notation
-                print(
-                    f"{self.x_bounds[0] + i * self.h:<10.2f}"
-                    f"{self.y_bounds[0] + j * self.k:<10.2f}"
-                    f"{self.u[i + j * self.m]:<10.2e}"
-                )
-            print()
-
-    def plot_solution(self):
-        # Make a 3D surface plot
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection="3d")
-        import numpy as np
-       
-        x = np.linspace(self.x_bounds[0], self.x_bounds[1], self.m)
-        y = np.linspace(self.y_bounds[0], self.y_bounds[1], self.n)
-
-        # Create a meshgrid
-        X, Y = np.meshgrid(x, y)
-
-        self.u = np.array(self.u)
-
-        # Plot the surface
-        ax.plot_surface(X, Y, self.u.reshape(self.m, self.n).transpose().data)
-
-        # Set the x-axis and y-axis labels
-        ax.set_xlabel("Space")
-        ax.set_ylabel("Time")
-
-        # Set the title of the plot
-        ax.set_title("Poisson equation")
 
         # Show the plot
         plt.show()
