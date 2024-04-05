@@ -271,10 +271,15 @@ def inverse_conjugate_gradient(
                     sum_1 = sum(lower[k, s] * upper[s, j] for s in range(1, k-1))
                     upper[k, j] = self.matrix[k, j] - sum_1
                 
-                for j in range(self.matrix.nrows):
-                    sum_2 = sum(lower[k, s] * upper[s, j] for s in range(1, k-1))
-                    lower[j, k] = (self.matrix[j, k] - sum_2) / upper[k, k]
-            
+def conjugate_gradient_no_matrix(
+    func: Callable, b: Array, tol: float = 1e-6, max_iter: int = 500
+):
+    x0 = Array.zeros("d", b.length)
+    r = b - func(x0)
+    d = r
+    residue = []
+    count = 1
+
             return lower, upper
 
 
