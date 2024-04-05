@@ -249,6 +249,13 @@ class Matrix:
         else:
             return Array(self.data[i][i] for i in range(self.nrows))
 
+    @staticmethod
+    def identity(n):
+        result = Matrix(n, n)
+        for i in range(n):
+            result.data[i][i] = 1
+        return result
+
     @property
     def rows(self):
         return [row for row in self.data]
