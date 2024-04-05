@@ -145,21 +145,123 @@ class LUSolve:
             sum_2 = sum(upper[i, j] * x[j] for j in range(i+1, n))
             x[i] = (y[i] - sum_2) / upper[i, i]
 
-        return x
-    
+        return round(x, 5)
+
+
+class Cholesky:
+    def __init__(self, matrix: Matrix, b: Array):
+        self.L = matrix
+        self.b = Array("d", b)
+
     def decompose(self):
-        lower = Matrix(self.matrix.nrows, self.matrix.ncols)
-        upper = Matrix(self.matrix.nrows, self.matrix.ncols)
-        if self.method == "crout":
-            for k in range(self.matrix.nrows):
-                upper[k, k] = 1.0
-                for j in range(k, self.matrix.nrows):
-                    sum_1 = sum(lower[k, s] * upper[s, j] for s in range(1, k-1))
-                    lower[j, k] = self.matrix[k, k] - sum_1
-                
+        for i in range(self.L.nrows):
+            for k in range(i, self.L.nrows):
+                if i == k:
+                    sum_1 = sum(self.L[i, j] ** 2 for j in range(i))
+                    self.L[i, i] = sqrt(self.L[i, i] - sum_1)
+                elif i < k:
+                    sum_2 = sum(self.L[i, j] * self.L[j, k] for j in range(i))
+                    self.L[i, k] = (self.L[i, k] - sum_2) / self.L[i, i]
+                    self.L[k, i] = self.L[i, k]
+
+        return self.L
+
+    def solve(self):
+        y = Array.zeros("d", self.b.length)
+
+        # Forward sub
+        for i in range(self.b.length):
+            summ = 0
+            for j in range(i):
+                summ += self.L[i, j] * y[j]
+            y[i] = (self.b[i] - summ) / self.L[i, i]
+
+        # Backward sub
+        for i in range(self.b.length - 1, -1, -1):
+            summ = 0
+            for j in range(i + 1, self.b.length):
+                summ += self.L[i, j] * self.b[j]
+            self.b[i] = (y[i] - summ) / self.L[i, i]
+
+        return round(self.b, 5)
+
+
+class GaussJacobi:
+    pass
+
+
+class GaussSeidel:
+    def __init__(self, matrix: Matrix, b: Array, tol: float = 1e-6):
+        self.matrix = matrix
+        self.b = b
+        self.x = Array.zeros("d", b.length)
+        self._x = Array.zeros("d", b.length)
+        self.tol = tol
+
+    def solve(self):
+        while True:
+            delta = 0
+            for i in range(self.matrix.nrows):
+                self._x[i] = self.b[i]
                 for j in range(self.matrix.nrows):
-                    sum_2 = sum(lower[k, s] * upper[s, j] for s in range(1, k-1))
-                    upper[k, j] = (self.matrix[k, j] - sum_2) / lower[k, k]
+                    if i != j:
+                        self._x[i] -= self.matrix[i, j] * self.x[j]
+                self._x[i] /= self.matrix[i, i]
+                delta += abs(self._x[i] - self.x[i])
+
+            for i in range(self.matrix.nrows):
+                self.x[i] = self._x[i]
+
+            if delta < self.tol:
+                break
+
+        return round(self.x, 5)
+
+
+def conjugate_gradient(
+    matrix: Matrix,
+    b: Array,
+    x0: Array = None,
+    tol: float = 1e-10,
+    max_iter: int = 10000,
+):
+    if x0 is None:
+        x0 = Array.zeros("d", b.length)
+
+    if not isinstance(x0, Array):
+        x0 = Array("d", x0)
+
+    r = b - matrix @ x0
+    d = r
+    residue = []
+    count = 1
+
+    while Array.inner(r, r) > tol and count <= max_iter:
+        k = Array.inner(r, r)
+        alpha = k / Array.inner(d, matrix @ d)
+        x0 = x0 + d * alpha
+        r -= (matrix @ d) * alpha
+        if count == 1:
+            d = r
+        beta = Array.inner(r, r) / k
+        d = r + d * beta
+        count += 1
+        residue.append(sqrt(Array.inner(r, r)))
+
+    return x0, residue
+
+
+def inverse_conjugate_gradient(
+    matrix: Matrix, tol: float = 1e-10, max_iter: int = 10000
+):
+    inverse = Matrix(matrix.nrows, matrix.ncols)
+    for i in range(matrix.nrows):
+        e = Array.zeros("d", matrix.nrows)
+        e[i] = 1
+        x, _ = conjugate_gradient(matrix.transpose(), e, tol=tol, max_iter=max_iter)
+        inverse[i] = x
+
+    return inverse
 
             return lower, upper
         elif self.method == "doolittle":
