@@ -99,6 +99,16 @@ class Array(array):
     def random(typecode, size):
         raise NotImplementedError("Random number generation is not implemented yet.")
 
+    @staticmethod
+    def inner(a, b):
+        if len(a) != len(b):
+            raise ValueError("Arrays must be of the same size")
+        return sum([x * y for x, y in zip(a, b)])
+    
+    @staticmethod
+    def norm(a):
+        return Array.inner(a, a) ** 0.5
+
     def __add__(self, other: Self) -> Self:
         if isinstance(other, Array):
             return Array(self.typecode, [x + y for x, y in zip(self, other)])
