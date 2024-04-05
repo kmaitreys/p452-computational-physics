@@ -127,6 +127,9 @@ class Array(array):
     def __rsub__(self, other: int | float) -> Self:
         return self.__sub__(other)
 
+    def __isub__(self, other: Self) -> Self:
+        return self.__sub__(other)
+
     def __mul__(self, other: Self | int | float) -> Self:
         if isinstance(other, (int, float)):
             return Array(self.typecode, [x * other for x in self])
