@@ -82,6 +82,51 @@ class LUSolve:
         self.method = method
         self.pivmat = None
 
+    def _partial_pivot(self):
+        for i in range(self.vector.length - 1):
+            if self.matrix[i, i] == 0:
+                for j in range(i + 1, self.vector.length):
+                    if abs(self.matrix[j, i]) > abs(self.matrix[i, i]):
+                        self.matrix[i], self.matrix[j] = self.matrix[j], self.matrix[i]
+                        self.vector[i], self.vector[j] = self.vector[j], self.vector[i]
+
+    def decompose(self):
+        lower = Matrix(self.matrix.nrows, self.matrix.ncols)
+        upper = Matrix(self.matrix.nrows, self.matrix.ncols)
+        if self.method == "crout":
+            for i in range(self.matrix.nrows):
+                upper[i, i] = 1.0
+                for j in range(i, self.matrix.nrows):
+                    tmp_lower = lower[j, i]
+                    for k in range(i):
+                        tmp_lower -= lower[j, k] * upper[k, i]
+                    lower[j, i] = tmp_lower
+                for j in range(i + 1, self.matrix.nrows):
+                    tmp_upper = upper[i, j]
+                    for k in range(i):
+                        tmp_upper -= lower[i, k] * upper[k, j]
+                    upper[i, j] = tmp_upper / lower[i, i]
+            return lower, upper
+
+        elif self.method == "doolittle":
+            for i in range(self.matrix.nrows):
+                for k in range(i, self.matrix.nrows):
+                    sum_1 = 0
+                    for j in range(i):
+                        sum_1 += lower[i, j] * upper[j, k]
+                    upper[i, k] = self.matrix[i, k] - sum_1
+
+                for k in range(i, self.matrix.nrows):
+                    if i == k:
+                        lower[i, i] = 1
+                    else:
+                        sum_2 = 0
+                        for j in range(i):
+                            sum_2 += lower[k, j] * upper[j, i]
+                        lower[k, i] = (self.matrix[k, i] - sum_2) / upper[i, i]
+
+            return lower, upper
+
     def solve(self):
         lower, upper = self.decompose()
         
