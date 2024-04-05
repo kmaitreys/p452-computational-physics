@@ -143,6 +143,23 @@ class Array(array):
     def __rmul__(self, other: int | float) -> Self:
         return self.__mul__(other)
 
+    def __truediv__(self, other: int | float) -> Self:
+        if other == 0:
+            raise ValueError("Division by zero")
+        return Array(self.typecode, [x / other for x in self])
+    
+    def __round__(self, n):
+        return Array(self.typecode, [round(x, n) for x in self])
+    
+    def __abs__(self):
+        return Array(self.typecode, [abs(x) for x in self])
+    
+    def __pow__(self, other: int | float) -> Self:
+        if isinstance(other, (int, float)):
+            return Array(self.typecode, [x ** other for x in self])
+        else:
+            raise ValueError("Array can only be raised to a scalar power")
+
     def __repr__(self) -> str:
         # Make a more pretty representation of the array
         type_dict = {
