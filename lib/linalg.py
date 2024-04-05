@@ -1,4 +1,9 @@
-from datamodels import Array, Matrix
+from math import sqrt
+from typing import Callable
+
+import matplotlib.pyplot as plt
+
+from .datamodels import Array, Matrix
 
 
 class GaussJordan:
@@ -67,7 +72,7 @@ class GaussJordan:
 
             solution[k] /= self.augmat[k, k]
 
-        return solution
+        return round(solution, 5)
 
 
 class LUSolve:
@@ -128,22 +133,25 @@ class LUSolve:
             return lower, upper
 
     def solve(self):
+        self._partial_pivot()
         lower, upper = self.decompose()
-        
+
         # Forward substitution
         n = self.matrix.nrows
         y = Array.zeros("d", n)
-        y[0] = self.vector[0] / lower[0, 0]
-        for i in range(1, n):
-            sum_1 = sum(lower[i, j] * y[j] for j in range(i))
-            y[i] = (self.vector[i] - sum_1) / lower[i, i]
-        
+        for k in range(n):
+            y[k] = self.vector[k]
+            for j in range(k):
+                y[k] -= lower[k, j] * y[j]
+            y[k] /= lower[k, k]
+
         # Back substitution
         x = Array.zeros("d", n)
-        x[n-1] = y[n-1] / upper[n-1, n-1]
-        for i in range(n-2, -1, -1):
-            sum_2 = sum(upper[i, j] * x[j] for j in range(i+1, n))
-            x[i] = (y[i] - sum_2) / upper[i, i]
+        for k in range(n, 0, -1):
+            x[k - 1] = y[k - 1]
+            for j in range(k, n):
+                x[k - 1] -= upper[k - 1, j] * x[j]
+            x[k - 1] /= upper[k - 1, k - 1]
 
         return round(x, 5)
 
@@ -263,14 +271,7 @@ def inverse_conjugate_gradient(
 
     return inverse
 
-            return lower, upper
-        elif self.method == "doolittle":
-            for k in range(self.matrix.nrows):
-                lower[k, k] = 1.0
-                for j in range(k, self.matrix.nrows):
-                    sum_1 = sum(lower[k, s] * upper[s, j] for s in range(1, k-1))
-                    upper[k, j] = self.matrix[k, j] - sum_1
-                
+
 def conjugate_gradient_no_matrix(
     func: Callable, b: Array, tol: float = 1e-6, max_iter: int = 500
 ):
@@ -280,35 +281,44 @@ def conjugate_gradient_no_matrix(
     residue = []
     count = 1
 
-            return lower, upper
+    while Array.norm(r) > tol and count <= max_iter:
+        k = Array.inner(r, r)
+        alpha = k / Array.inner(d, func(d))
+        x0 = x0 + d * alpha
+        r = r - func(d) * alpha
+        if count == 1:
+            d = r
+        beta = Array.inner(r, r) / k
+        d = r + d * beta
+        residue.append(Array.norm(r))
+        count += 1
+
+    return x0, residue
 
 
-lu = LUSolve(
-    matrix=Matrix.from_list(
-        [
-            [0, 2, 5],
-            [3, -1, 2],
-            [1, -1, 3]
-        ]
-    ),
-    vector=Array("d", [1, -2, 3]),
-    method="crout"
-)
+def inverse_conjugate_gradient_no_matrix(
+    func, n, tol: float = 1e-6, max_iter: int = 500, plot: bool = True
+):
+    sol = []
+    res = []
 
-sol = lu.solve()
-print(sol)
+    for i in range(n):
+        e = Array.zeros("d", n)
+        e[i] = 1
+        x, r = conjugate_gradient_no_matrix(func, e, tol=tol, max_iter=max_iter)
+        sol.append(x)
+        res.append(r)
 
+    res = Matrix.from_list(res)
+    sol = Matrix.from_list(sol).transpose()
 
-class Cholesky:
-    pass
+    res = res**2
 
+    residue = Array.zeros("d", res.nrows)
 
-class GaussJacobi:
-    pass
-
-
-class GaussSeidel:
-    pass
+    for i in range(res.nrows):
+        residue[i] = sqrt(sum(res[i]))
+    
 
     if plot is True:
         plt.plot(r)
@@ -317,9 +327,8 @@ class GaussSeidel:
         plt.yscale("log")
         plt.title("Conjugate Gradient Residue")
         plt.show()
-
-def conjugate_gradient():
-    pass
+    
+    return sol, residue
 
 
 def steepest_descent():
