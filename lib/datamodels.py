@@ -68,7 +68,7 @@ class Array(array):
 
     def abs(self):
         return Array(self.typecode, (abs(x) for x in self))
-
+    
     @property
     def length(self):
         return len(self)
@@ -126,7 +126,7 @@ class Array(array):
 
     def __rsub__(self, other: int | float) -> Self:
         return self.__sub__(other)
-
+    
     def __isub__(self, other: Self) -> Self:
         return self.__sub__(other)
 
@@ -142,7 +142,7 @@ class Array(array):
 
     def __rmul__(self, other: int | float) -> Self:
         return self.__mul__(other)
-
+    
     def __truediv__(self, other: int | float) -> Self:
         if other == 0:
             raise ValueError("Division by zero")
@@ -248,7 +248,7 @@ class Matrix:
             )
         else:
             return Array(self.data[i][i] for i in range(self.nrows))
-
+        
     @staticmethod
     def identity(n):
         result = Matrix(n, n)
@@ -376,7 +376,8 @@ class Matrix:
                     self.data[i][j] **= other
             return self
         else:
-            raise ValueError("Matrix can only be multiplied by another Matrix")
+            raise ValueError("Matrix can only be raised to a scalar power")
+            
 
     def invert(self):
         if self.nrows != self.ncols:
@@ -405,4 +406,5 @@ class Matrix:
         return "\n".join(" ".join("{:>{width}}".format(x, width=10) for x in row) for row in self.data)
 
     def __repr__(self):
-        return f"Matrix({self.nrows}, {self.ncols})"
+        # Pretty print the matrix
+        return "\n".join(" ".join(str(x) for x in row) for row in self.data)
