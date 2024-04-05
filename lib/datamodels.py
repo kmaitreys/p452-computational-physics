@@ -398,7 +398,11 @@ class Matrix:
         return result
 
     def __str__(self):
-        return "\n".join(" ".join(str(x) for x in row) for row in self.data)
+        # Round off the numbers to 5 decimal places
+        for i in range(self.nrows):
+            for j in range(self.ncols):
+                self.data[i][j] = round(self.data[i][j], 5)
+        return "\n".join(" ".join("{:>{width}}".format(x, width=10) for x in row) for row in self.data)
 
     def __repr__(self):
         return f"Matrix({self.nrows}, {self.ncols})"
