@@ -310,6 +310,13 @@ class GaussJacobi:
 class GaussSeidel:
     pass
 
+    if plot is True:
+        plt.plot(r)
+        plt.xlabel("Iterations")
+        plt.ylabel("Residue")
+        plt.yscale("log")
+        plt.title("Conjugate Gradient Residue")
+        plt.show()
 
 def conjugate_gradient():
     pass
