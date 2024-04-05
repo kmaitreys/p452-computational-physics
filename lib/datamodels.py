@@ -345,6 +345,36 @@ class Matrix:
                     for k in range(self.ncols):
                         result.data[i][j] += self.data[i][k] * other.data[k][j]
             return result
+        elif isinstance(other, Array):
+            if self.ncols != other.length:
+                raise ValueError("Matrix and Array dimensions must be compatible")
+            result = Array("d", [0] * self.nrows)
+            for i in range(self.nrows):
+                for j in range(self.ncols):
+                    result[i] += self.data[i][j] * other[j]
+            return result
+    
+    def __matmul__(self, other):
+        return self.__mul__(other)
+        
+    def __round__(self, n):
+        for i in range(self.nrows):
+            for j in range(self.ncols):
+                self.data[i][j] = round(self.data[i][j], n)
+        return self
+    
+    def __abs__(self):
+        for i in range(self.nrows):
+            for j in range(self.ncols):
+                self.data[i][j] = abs(self.data[i][j])
+        return self
+
+    def __pow__(self, other):
+        if isinstance(other, int | float):
+            for i in range(self.nrows):
+                for j in range(self.ncols):
+                    self.data[i][j] **= other
+            return self
         else:
             raise ValueError("Matrix can only be multiplied by another Matrix")
 
