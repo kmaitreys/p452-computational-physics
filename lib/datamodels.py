@@ -69,6 +69,10 @@ class Array(array):
     def abs(self):
         return Array(self.typecode, (abs(x) for x in self))
 
+    @property
+    def length(self):
+        return len(self)
+
     @staticmethod
     def zeros(typecode, size):
         return Array(typecode, [0] * size)
