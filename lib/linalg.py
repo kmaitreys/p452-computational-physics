@@ -225,6 +225,111 @@ class GaussSeidel:
 
         return round(self.x, 5)
 
+class ConjugateGradient:
+    def __init__(self, matrix: Matrix | Callable, b: Array, x0: Array = None, tol: float = 1e-10, max_iter: int = 10000):
+        self.matrix = matrix
+        self.b = b
+        self.x0 = x0
+        self.tol = tol
+        self.max_iter = max_iter
+        self.residue = None
+    
+    def _get_gradients_and_residue(self):
+        if isinstance(self.matrix, Matrix):
+            if self.x0 is None:
+                self.x0 = Array.zeros("d", self.b.length)
+            if not isinstance(self.x0, Array):
+                self.x0 = Array("d", self.x0)
+            
+            r = self.b - self.matrix @ self.x0
+            d = r
+            self.residue = []
+            count = 1
+
+            while Array.inner(r, r) > self.tol and count <= self.max_iter:
+                k = Array.inner(r, r)
+                alpha = k / Array.inner(d, self.matrix @ d)
+                self.x0 = self.x0 + d * alpha
+                r -= (self.matrix @ d) * alpha
+                if count == 1:
+                    d = r
+                beta = Array.inner(r, r) / k
+                d = r + d * beta
+                count += 1
+                self.residue.append(sqrt(Array.inner(r, r)))
+            
+            return self
+
+        elif callable(self.matrix):
+            r = self.b - self.matrix(self.x0)
+            d = r
+            self.residue = []
+            count = 1
+
+            while Array.norm(r) > self.tol and count <= self.max_iter:
+                k = Array.inner(r, r)
+                alpha = k / Array.inner(d, self.matrix(d))
+                self.x0 = self.x0 + d * alpha
+                r = r - self.matrix(d) * alpha
+                if count == 1:
+                    d = r
+                beta = Array.inner(r, r) / k
+                d = r + d * beta
+                self.residue.append(Array.norm(r))
+                count += 1
+            
+            return self
+        
+
+    def solve(self, plot: bool = None):
+        if isinstance(self.matrix, Matrix):
+            inverse = Matrix(self.matrix.nrows, self.matrix.ncols)
+            for i in range(self.matrix.nrows):
+                e = Array.zeros("d", self.matrix.nrows)
+                e[i] = 1
+                self._get_gradients_and_residue()
+                inverse[i] = self.x0
+            
+            return self, inverse
+
+        elif callable(self.matrix):
+            vals = []
+            res = []
+
+            for i in range(self.b.length):
+                e = Array.zeros("d", self.b.length)
+                e[i] = 1
+                self._get_gradients_and_residue()
+                vals.append(self.x0)
+                res.append(self.residue)
+            
+            res = Matrix.from_list(res)
+            vals = Matrix.from_list(vals).transpose()
+
+            res = res**2
+
+            residue = Array.zeros("d", res.nrows)
+
+            for i in range(res.nrows):
+                residue[i] = sqrt(sum(res[i]))
+
+            if plot is True:
+                plt.plot(self.residue)
+                plt.xlabel("Iterations")
+                plt.ylabel("Residue")
+                plt.yscale("log")
+                plt.title("Conjugate Gradient Residue")
+                plt.show()
+            
+            return self, vals, residue
+    
+    def plot_residue(self):
+        plt.plot(self.residue)
+        plt.xlabel("Iterations")
+        plt.ylabel("Residue")
+        plt.yscale("log")
+        plt.title("Conjugate Gradient Residue")
+        plt.show()
 
 def conjugate_gradient(
     matrix: Matrix,
