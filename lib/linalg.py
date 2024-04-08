@@ -451,17 +451,43 @@ def gmres():
     pass
 
 
-def qr_factorization():
-    pass
+class QRFactorization:
+    """Decompose a matrix into its QR factors using Householder or Gram-Schmidt method
+    and return the eigenvalues and eigenvectors of the matrix.
 
+    Attributes
+    ----------
+    matrix : Matrix
+        The matrix to be decomposed
 
-def gram_schmidt():
-    pass
+    Q : Matrix
 
+    R : Matrix
 
-def householder():
-    pass
+    Methods
+    -------
+    householder()
+        Perform QR decomposition using Householder method.
 
+    gram_schmidt()
+        Perform QR decomposition using Gram-Schmidt method.
+
+    solve()
+        Solve the system of linear equations using the QR decomposition.
+    """
+    def __init__(self, matrix: Matrix, method: str = "householder"):
+        self.matrix = matrix
+        self.Q = Matrix(matrix.nrows, matrix.ncols)
+        self.R = Matrix(matrix.nrows, matrix.ncols)
+    
+    def householder(self):
+        pass
+
+    def gram_schmidt(self):
+        pass
+    
+    def solve(self):
+        pass
 
 def power_iteration(A: Matrix, tol: float = 1e-6, max_iter: int = 1000):
     lam_prev = 0
