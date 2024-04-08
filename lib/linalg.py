@@ -225,22 +225,30 @@ class GaussSeidel:
 
         return round(self.x, 5)
 
+
 class ConjugateGradient:
-    def __init__(self, matrix: Matrix | Callable, b: Array, x0: Array = None, tol: float = 1e-10, max_iter: int = 10000):
+    def __init__(
+        self,
+        matrix: Matrix | Callable,
+        b: Array,
+        x0: Array = None,
+        tol: float = 1e-10,
+        max_iter: int = 10000,
+    ):
         self.matrix = matrix
         self.b = b
         self.x0 = x0
         self.tol = tol
         self.max_iter = max_iter
         self.residue = None
-    
+
     def _get_gradients_and_residue(self):
         if isinstance(self.matrix, Matrix):
             if self.x0 is None:
                 self.x0 = Array.zeros("d", self.b.length)
             if not isinstance(self.x0, Array):
                 self.x0 = Array("d", self.x0)
-            
+
             r = self.b - self.matrix @ self.x0
             d = r
             self.residue = []
@@ -257,7 +265,7 @@ class ConjugateGradient:
                 d = r + d * beta
                 count += 1
                 self.residue.append(sqrt(Array.inner(r, r)))
-            
+
             return self
 
         elif callable(self.matrix):
@@ -277,9 +285,8 @@ class ConjugateGradient:
                 d = r + d * beta
                 self.residue.append(Array.norm(r))
                 count += 1
-            
+
             return self
-        
 
     def solve(self, plot: bool = None):
         if isinstance(self.matrix, Matrix):
@@ -289,7 +296,7 @@ class ConjugateGradient:
                 e[i] = 1
                 self._get_gradients_and_residue()
                 inverse[i] = self.x0
-            
+
             return self, inverse
 
         elif callable(self.matrix):
@@ -302,7 +309,7 @@ class ConjugateGradient:
                 self._get_gradients_and_residue()
                 vals.append(self.x0)
                 res.append(self.residue)
-            
+
             res = Matrix.from_list(res)
             vals = Matrix.from_list(vals).transpose()
 
@@ -320,9 +327,9 @@ class ConjugateGradient:
                 plt.yscale("log")
                 plt.title("Conjugate Gradient Residue")
                 plt.show()
-            
+
             return self, vals, residue
-    
+
     def plot_residue(self):
         plt.plot(self.residue)
         plt.xlabel("Iterations")
@@ -330,6 +337,7 @@ class ConjugateGradient:
         plt.yscale("log")
         plt.title("Conjugate Gradient Residue")
         plt.show()
+
 
 def conjugate_gradient(
     matrix: Matrix,
@@ -423,7 +431,6 @@ def inverse_conjugate_gradient_no_matrix(
 
     for i in range(res.nrows):
         residue[i] = sqrt(sum(res[i]))
-    
 
     if plot is True:
         plt.plot(r)
@@ -432,7 +439,7 @@ def inverse_conjugate_gradient_no_matrix(
         plt.yscale("log")
         plt.title("Conjugate Gradient Residue")
         plt.show()
-    
+
     return sol, residue
 
 
@@ -444,7 +451,7 @@ def gmres():
     pass
 
 
-def qr_decomposition():
+def qr_factorization():
     pass
 
 
@@ -456,9 +463,16 @@ def householder():
     pass
 
 
-def crout():
-    pass
+def power_iteration(A: Matrix, tol: float = 1e-6, max_iter: int = 1000):
+    lam_prev = 0
+    x = Array.ones("d", A.nrows)
+    for i in range(max_iter):
+        x = A @ x / Array.norm(A @ x)
+        lam = Array.inner(x, (A @ x)) / Array.inner(x, x)
 
+        if abs(lam - lam_prev) < tol:
+            break
 
-def doolittle():
-    pass
+        lam_prev = lam
+
+    return lam, x
