@@ -1,3 +1,5 @@
+import math
+from copy import deepcopy
 from math import sqrt
 from typing import Callable
 
@@ -476,19 +478,74 @@ class QRFactorization:
     solve()
         Solve the system of linear equations using the QR decomposition.
     """
-    def __init__(self, matrix: Matrix, method: str = "householder"):
+
+    def __init__(
+        self,
+        matrix: Matrix,
+        method: str = "gram_schmidt",
+        tol: float = 1e-10,
+        max_iter: int = 10000,
+    ):
         self.matrix = matrix
-        self.Q = Matrix(matrix.nrows, matrix.ncols)
-        self.R = Matrix(matrix.nrows, matrix.ncols)
-    
+        self.Q = Matrix(matrix.nrows, matrix.ncols, data="empty")
+        self.R = Matrix(matrix.nrows, matrix.ncols, data="empty")
+        self.method = method
+        self.tol = tol
+        self.max_iter = max_iter
+
     def householder(self):
-        pass
+        raise NotImplementedError("Householder method not implemented yet")
 
     def gram_schmidt(self):
-        pass
-    
+        n, m = self.matrix.nrows, self.matrix.ncols
+
+        u = Matrix(n, n)
+
+        u0 = self.matrix[:, 0]
+        u0 = Array("d", u0)
+        self.Q[:, 0] = u0 / norm(u0)
+        u[:, 0] = u0
+
+        for i in range(1, n):
+            ui = self.matrix[:, i]
+            ui = Array("d", ui)
+            for j in range(i):
+                Qj = self.Q[:, j]
+                Qj = Array("d", Qj)
+                ui -= inner(self.matrix[:, i], self.Q[:, j]) * Qj
+                # u[:, i] = ui
+
+            # ui = u[:, i]
+            # ui = Array("d", ui)
+
+            self.Q[:, i] = ui / norm(ui)
+
+        for i in range(n):
+            for j in range(m):
+                self.R[i, j] = inner(self.Q[:, i], self.matrix[:, j])
+
+        return self
+
     def solve(self):
-        pass
+        if self.method == "householder":
+            self.householder()
+        elif self.method == "gram_schmidt":
+            self.matrix = deepcopy(self.matrix)
+            matrix_new = deepcopy(self.matrix)
+
+            diff = math.inf
+            i = 0
+            while (diff > self.tol) and (i < self.max_iter):
+                self.matrix = deepcopy(matrix_new)
+                self.gram_schmidt()
+                matrix_new[:, :] = self.R @ self.Q
+                diff = abs(matrix_new - self.matrix).max()
+
+                i += 1
+            eigenvals = matrix_new.diag()
+
+            return eigenvals
+
 
 def power_iteration(A: Matrix, tol: float = 1e-6, max_iter: int = 1000):
     lam_prev = 0
