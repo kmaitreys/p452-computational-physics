@@ -52,6 +52,10 @@ class Array(array):
     @property
     def length(self):
         return len(self)
+    
+    @classmethod
+    def fromlist(cls, typecode, lst):
+        return cls(typecode, lst)
 
     def __add__(self, other: Self) -> Self:
         if isinstance(other, Array):
@@ -78,6 +82,8 @@ class Array(array):
         if isinstance(other, (int, float)):
             return Array(self.typecode, [x * other for x in self])
         elif isinstance(other, Array):
+            if len(self) != len(other):
+                raise ValueError("Arrays must be of the same size")
             return Array(self.typecode, [x * y for x, y in zip(self, other)])
         else:
             raise ValueError(
@@ -147,15 +153,15 @@ def frange(start, stop=None, step=None):
         num_of_steps += 1
 
 
-def zeros(typecode, size):
+def zeros(typecode: str, size: int):
     return Array(typecode, [0] * size)
 
 
-def ones(typecode, size):
+def ones(typecode: str, size: int):
     return Array(typecode, [1] * size)
 
 
-def arange(typecode, start, stop, step):
+def arange(typecode: str, start: float | int, stop: float | int, step: float | int):
     return Array(typecode, frange(start, stop, step))
 
 
@@ -173,7 +179,7 @@ def random(typecode, size):
     raise NotImplementedError("Random number generation is not implemented yet.")
 
 
-def inner(a, b):
+def inner(a: Array, b: Array):
     if len(a) != len(b):
         raise ValueError("Arrays must be of the same size")
     return sum([x * y for x, y in zip(a, b)])
