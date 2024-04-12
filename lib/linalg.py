@@ -3,7 +3,8 @@ from typing import Callable
 
 import matplotlib.pyplot as plt
 
-from .datamodels import Array, Matrix
+from .array import Array, inner, norm, ones, zeros
+from .matrix import Matrix
 
 
 class GaussJordan:
@@ -42,7 +43,7 @@ class GaussJordan:
         i = 0
         n = self.matrix.nrows
         m = n - 1
-        solution = Array.zeros("d", n)
+        solution = zeros("d", n)
         # Gaussian elimination
         while i < n:
             # Partial pivoting
@@ -138,7 +139,7 @@ class LUSolve:
 
         # Forward substitution
         n = self.matrix.nrows
-        y = Array.zeros("d", n)
+        y = zeros("d", n)
         for k in range(n):
             y[k] = self.vector[k]
             for j in range(k):
@@ -146,7 +147,7 @@ class LUSolve:
             y[k] /= lower[k, k]
 
         # Back substitution
-        x = Array.zeros("d", n)
+        x = zeros("d", n)
         for k in range(n, 0, -1):
             x[k - 1] = y[k - 1]
             for j in range(k, n):
@@ -175,7 +176,7 @@ class Cholesky:
         return self.L
 
     def solve(self):
-        y = Array.zeros("d", self.b.length)
+        y = zeros("d", self.b.length)
 
         # Forward sub
         for i in range(self.b.length):
@@ -202,8 +203,8 @@ class GaussSeidel:
     def __init__(self, matrix: Matrix, b: Array, tol: float = 1e-6):
         self.matrix = matrix
         self.b = b
-        self.x = Array.zeros("d", b.length)
-        self._x = Array.zeros("d", b.length)
+        self.x = zeros("d", b.length)
+        self._x = zeros("d", b.length)
         self.tol = tol
 
     def solve(self):
@@ -245,7 +246,7 @@ class ConjugateGradient:
     def _get_gradients_and_residue(self):
         if isinstance(self.matrix, Matrix):
             if self.x0 is None:
-                self.x0 = Array.zeros("d", self.b.length)
+                self.x0 = zeros("d", self.b.length)
             if not isinstance(self.x0, Array):
                 self.x0 = Array("d", self.x0)
 
@@ -254,17 +255,17 @@ class ConjugateGradient:
             self.residue = []
             count = 1
 
-            while Array.inner(r, r) > self.tol and count <= self.max_iter:
-                k = Array.inner(r, r)
-                alpha = k / Array.inner(d, self.matrix @ d)
+            while inner(r, r) > self.tol and count <= self.max_iter:
+                k = inner(r, r)
+                alpha = k / inner(d, self.matrix @ d)
                 self.x0 = self.x0 + d * alpha
                 r -= (self.matrix @ d) * alpha
                 if count == 1:
                     d = r
-                beta = Array.inner(r, r) / k
+                beta = inner(r, r) / k
                 d = r + d * beta
                 count += 1
-                self.residue.append(sqrt(Array.inner(r, r)))
+                self.residue.append(sqrt(inner(r, r)))
 
             return self
 
@@ -274,16 +275,16 @@ class ConjugateGradient:
             self.residue = []
             count = 1
 
-            while Array.norm(r) > self.tol and count <= self.max_iter:
-                k = Array.inner(r, r)
-                alpha = k / Array.inner(d, self.matrix(d))
+            while norm(r) > self.tol and count <= self.max_iter:
+                k = inner(r, r)
+                alpha = k / inner(d, self.matrix(d))
                 self.x0 = self.x0 + d * alpha
                 r = r - self.matrix(d) * alpha
                 if count == 1:
                     d = r
-                beta = Array.inner(r, r) / k
+                beta = inner(r, r) / k
                 d = r + d * beta
-                self.residue.append(Array.norm(r))
+                self.residue.append(norm(r))
                 count += 1
 
             return self
@@ -292,7 +293,7 @@ class ConjugateGradient:
         if isinstance(self.matrix, Matrix):
             inverse = Matrix(self.matrix.nrows, self.matrix.ncols)
             for i in range(self.matrix.nrows):
-                e = Array.zeros("d", self.matrix.nrows)
+                e = zeros("d", self.matrix.nrows)
                 e[i] = 1
                 self._get_gradients_and_residue()
                 inverse[i] = self.x0
@@ -304,7 +305,7 @@ class ConjugateGradient:
             res = []
 
             for i in range(self.b.length):
-                e = Array.zeros("d", self.b.length)
+                e = zeros("d", self.b.length)
                 e[i] = 1
                 self._get_gradients_and_residue()
                 vals.append(self.x0)
@@ -315,7 +316,7 @@ class ConjugateGradient:
 
             res = res**2
 
-            residue = Array.zeros("d", res.nrows)
+            residue = zeros("d", res.nrows)
 
             for i in range(res.nrows):
                 residue[i] = sqrt(sum(res[i]))
@@ -347,7 +348,7 @@ def conjugate_gradient(
     max_iter: int = 10000,
 ):
     if x0 is None:
-        x0 = Array.zeros("d", b.length)
+        x0 = zeros("d", b.length)
 
     if not isinstance(x0, Array):
         x0 = Array("d", x0)
@@ -357,17 +358,17 @@ def conjugate_gradient(
     residue = []
     count = 1
 
-    while Array.inner(r, r) > tol and count <= max_iter:
-        k = Array.inner(r, r)
-        alpha = k / Array.inner(d, matrix @ d)
+    while inner(r, r) > tol and count <= max_iter:
+        k = inner(r, r)
+        alpha = k / inner(d, matrix @ d)
         x0 = x0 + d * alpha
         r -= (matrix @ d) * alpha
         if count == 1:
             d = r
-        beta = Array.inner(r, r) / k
+        beta = inner(r, r) / k
         d = r + d * beta
         count += 1
-        residue.append(sqrt(Array.inner(r, r)))
+        residue.append(sqrt(inner(r, r)))
 
     return x0, residue
 
@@ -377,7 +378,7 @@ def inverse_conjugate_gradient(
 ):
     inverse = Matrix(matrix.nrows, matrix.ncols)
     for i in range(matrix.nrows):
-        e = Array.zeros("d", matrix.nrows)
+        e = zeros("d", matrix.nrows)
         e[i] = 1
         x, _ = conjugate_gradient(matrix.transpose(), e, tol=tol, max_iter=max_iter)
         inverse[i] = x
@@ -388,22 +389,22 @@ def inverse_conjugate_gradient(
 def conjugate_gradient_no_matrix(
     func: Callable, b: Array, tol: float = 1e-6, max_iter: int = 500
 ):
-    x0 = Array.zeros("d", b.length)
+    x0 = zeros("d", b.length)
     r = b - func(x0)
     d = r
     residue = []
     count = 1
 
-    while Array.norm(r) > tol and count <= max_iter:
-        k = Array.inner(r, r)
-        alpha = k / Array.inner(d, func(d))
+    while norm(r) > tol and count <= max_iter:
+        k = inner(r, r)
+        alpha = k / inner(d, func(d))
         x0 = x0 + d * alpha
         r = r - func(d) * alpha
         if count == 1:
             d = r
-        beta = Array.inner(r, r) / k
+        beta = inner(r, r) / k
         d = r + d * beta
-        residue.append(Array.norm(r))
+        residue.append(norm(r))
         count += 1
 
     return x0, residue
@@ -416,7 +417,7 @@ def inverse_conjugate_gradient_no_matrix(
     res = []
 
     for i in range(n):
-        e = Array.zeros("d", n)
+        e = zeros("d", n)
         e[i] = 1
         x, r = conjugate_gradient_no_matrix(func, e, tol=tol, max_iter=max_iter)
         sol.append(x)
@@ -427,7 +428,7 @@ def inverse_conjugate_gradient_no_matrix(
 
     res = res**2
 
-    residue = Array.zeros("d", res.nrows)
+    residue = zeros("d", res.nrows)
 
     for i in range(res.nrows):
         residue[i] = sqrt(sum(res[i]))
@@ -491,10 +492,11 @@ class QRFactorization:
 
 def power_iteration(A: Matrix, tol: float = 1e-6, max_iter: int = 1000):
     lam_prev = 0
-    x = Array.ones("d", A.nrows)
+    x = ones("d", A.nrows)
+    lam = 0.0
     for i in range(max_iter):
-        x = A @ x / Array.norm(A @ x)
-        lam = Array.inner(x, (A @ x)) / Array.inner(x, x)
+        x = A @ x / norm(A @ x)
+        lam = inner(x, (A @ x)) / inner(x, x)
 
         if abs(lam - lam_prev) < tol:
             break

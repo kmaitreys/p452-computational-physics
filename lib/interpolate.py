@@ -1,6 +1,6 @@
 # import math
 
-from datamodels import Array
+from .array import Array
 
 
 class LagrangeInterpolator:

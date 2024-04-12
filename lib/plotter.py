@@ -13,7 +13,7 @@ from typing import Callable, Tuple
 
 import matplotlib.pyplot as plt
 
-from .datamodels import Array
+from .array import Array, linspace, zeros
 
 
 def plot_data(
@@ -50,8 +50,8 @@ def plot_function(
         The title of the plot.
     """
 
-    x = Array.linspace("d", bounds[0], bounds[1], num_points)
-    y = Array.zeros("d", num_points)
+    x = linspace("d", bounds[0], bounds[1], num_points)
+    y = zeros("d", num_points)
     for i in range(num_points):
         y[i] = func(x[i])
 

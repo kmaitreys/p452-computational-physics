@@ -8,7 +8,8 @@ from typing import Callable, List, Tuple
 
 import matplotlib.pyplot as plt
 
-from .datamodels import Array, Matrix
+from .array import Array, zeros
+from .matrix import Matrix
 
 
 class HeatDiffusion:
@@ -99,7 +100,7 @@ class HeatDiffusion:
                 A[i, i + 1] = -self.alpha
 
         for n in range(self.Nt - 1):
-            b = Array.zeros("d", self.Nx)
+            b = zeros("d", self.Nx)
             for j in range(1, self.Nx - 1):
                 b[j] = self.u[n, j] + self.alpha * (
                     self.u[n, j + 1] - 2 * self.u[n, j] + self.u[n, j - 1]
@@ -114,9 +115,9 @@ class HeatDiffusion:
         It solves tridiagonal matrices of the form Ax = b.
         """
         N = len(b)
-        c = Array.zeros("d", N - 1)
-        d = Array.zeros("d", N)
-        x = Array.zeros("d", N)
+        c = zeros("d", N - 1)
+        d = zeros("d", N)
+        x = zeros("d", N)
 
         # Forward elimination
         c[0] = A[0, 1] / A[0, 0]
@@ -224,7 +225,7 @@ class PoissonEquation:
         self.h = (self.x_bounds[1] - self.x_bounds[0]) / self.M
         self.k = (self.y_bounds[1] - self.y_bounds[0]) / self.N
 
-        self.u = Array.zeros("d", self.mn)
+        self.u = zeros("d", self.mn)
 
     def intial_condition(self, x, y):
         return 0
@@ -243,9 +244,9 @@ class PoissonEquation:
         It solves tridiagonal matrices of the form Ax = b.
         """
         N = len(b)
-        c = Array.zeros("d", N - 1)
-        d = Array.zeros("d", N)
-        x = Array.zeros("d", N)
+        c = zeros("d", N - 1)
+        d = zeros("d", N)
+        x = zeros("d", N)
 
         # Forward elimination
         c[0] = A[0, 1] / A[0, 0]
@@ -266,7 +267,7 @@ class PoissonEquation:
         y = np.linspace(self.y_bounds[0], self.y_bounds[1], self.n)
 
         A = Matrix(self.mn, self.mn)
-        b = Array.zeros("d", self.mn)
+        b = zeros("d", self.mn)
 
         for i in range(1, self.m - 1):
             for j in range(1, self.n - 1):

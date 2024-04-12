@@ -10,7 +10,7 @@ The following methods are available:
 import math
 from typing import Callable, Tuple
 
-from .datamodels import Array
+from lib.array import arange
 
 
 def get_max_steps(func, a, b, tol, method, *args):
@@ -149,7 +149,7 @@ def simpson(
     h = (b - a) / n
 
     # create an array of x values
-    x = Array.arange("d", a, b + h, h)
+    x = arange("d", a, b + h, h)
     x[0] = func(x[0])
     x[-1] = func(x[-1])
     for i in range(1, len(x) - 1):
