@@ -3,6 +3,9 @@ This module defines the Matrix class which is used to represent a matrix of numb
 The Matrix class can be used to perform matrix operations such as addition, subtraction,
 multiplication, and inversion.
 """
+
+import ctypes
+
 from .array import Array
 
 
@@ -24,27 +27,35 @@ class Matrix:
         The list of columns of the matrix
     trace : float
         The trace of the matrix
-    
+
     Methods
     -------
     from_list(data)
         Create a matrix from a list of lists.
-    
+
     transpose()
         Return the transpose of the matrix.
-    
+
     diag(offset=0)
         Return the diagonal of the matrix.
-    
+
     invert()
         Return the inverse of the matrix.
 
     """
 
-    def __init__(self, nrows, ncols):
+    def __init__(self, nrows, ncols, data="zeros"):
         self.nrows = nrows
         self.ncols = ncols
-        self.data = [Array("d", [0] * ncols) for _ in range(nrows)]
+        if data == "zeros":
+            self.data = [Array("d", [0] * ncols) for _ in range(nrows)]
+        elif data == "empty":
+            # Initialize an empty matrix using the ctypes module
+            item_size = ctypes.sizeof(ctypes.c_double)
+            buffer = (ctypes.c_double * (nrows * ncols * item_size))()
+            self.data = [
+                Array("d", buffer[i * ncols : (i + 1) * ncols]) for i in range(nrows)
+            ]
 
     @classmethod
     def from_list(cls, data):
@@ -67,15 +78,16 @@ class Matrix:
         if self.nrows != self.ncols:
             raise ValueError("Matrix must be square")
         if offset > 0:
-            return Array(self.data[0][offset:] + [0] * offset)
+            return Array("d", self.data[0][offset:] + [0] * offset)
         elif offset < 0:
             return Array(
+                "d",
                 [0] * -offset
-                + [self.data[i][-offset] for i in range(-offset, self.nrows)]
+                + [self.data[i][-offset] for i in range(-offset, self.nrows)],
             )
         else:
-            return Array(self.data[i][i] for i in range(self.nrows))
-        
+            return Array("d", [self.data[i][i] for i in range(self.nrows)])
+
     @staticmethod
     def identity(n):
         result = Matrix(n, n)
@@ -134,9 +146,26 @@ class Matrix:
     def __setitem__(self, key, value):
         if isinstance(key, tuple):
             row, col = key
-            self.data[row][col] = value
-        else:
-            self.data[key] = value
+            if isinstance(row, slice) and isinstance(col, slice):
+                for i, r in enumerate(
+                    range(row.start or 0, row.stop or self.nrows, row.step or 1)
+                ):
+                    for j, c in enumerate(
+                        range(col.start or 0, col.stop or self.ncols, col.step or 1)
+                    ):
+                        self.data[r][c] = value[i][j]
+            elif isinstance(row, slice):
+                for i, r in enumerate(
+                    range(row.start or 0, row.stop or self.nrows, row.step or 1)
+                ):
+                    self.data[r][col] = value[i]
+            elif isinstance(col, slice):
+                for j, c in enumerate(
+                    range(col.start or 0, col.stop or self.ncols, col.step or 1)
+                ):
+                    self.data[row][c] = value[j]
+            else:
+                self.data[row][col] = value
 
     def __add__(self, other):
         if isinstance(other, Matrix):
@@ -180,21 +209,29 @@ class Matrix:
                 for j in range(self.ncols):
                     result[i] += self.data[i][j] * other[j]
             return result
-    
+
     def __matmul__(self, other):
         return self.__mul__(other)
-        
+
     def __round__(self, n):
         for i in range(self.nrows):
             for j in range(self.ncols):
                 self.data[i][j] = round(self.data[i][j], n)
         return self
-    
+
     def __abs__(self):
         for i in range(self.nrows):
             for j in range(self.ncols):
                 self.data[i][j] = abs(self.data[i][j])
         return self
+
+    def max(self):
+        max_val = self.data[0][0]
+        for i in range(self.nrows):
+            for j in range(self.ncols):
+                if self.data[i][j] > max_val:
+                    max_val = self.data[i][j]
+        return max_val
 
     def __pow__(self, other):
         if isinstance(other, int | float):
@@ -204,7 +241,6 @@ class Matrix:
             return self
         else:
             raise ValueError("Matrix can only be raised to a scalar power")
-            
 
     def invert(self):
         if self.nrows != self.ncols:
@@ -230,7 +266,10 @@ class Matrix:
         for i in range(self.nrows):
             for j in range(self.ncols):
                 self.data[i][j] = round(self.data[i][j], 5)
-        return "\n".join(" ".join("{:>{width}}".format(x, width=10) for x in row) for row in self.data)
+        return "\n".join(
+            " ".join("{:>{width}}".format(x, width=10) for x in row)
+            for row in self.data
+        )
 
     def __repr__(self):
         # Pretty print the matrix
