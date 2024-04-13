@@ -88,6 +88,30 @@ class Matrix:
         else:
             return Array("d", [self.data[i][i] for i in range(self.nrows)])
 
+    def det(self):
+        if self.nrows != self.ncols:
+            raise ValueError("Matrix must be square")
+        if self.nrows == 1:
+            return self.data[0][0]
+        if self.nrows == 2:
+            return self.data[0][0] * self.data[1][1] - self.data[0][1] * self.data[1][0]
+        
+        det = 0
+        for col in range(self.ncols):
+            cofactor = (-1) ** col * self.data[0][col]
+            minor = self._get_minor(0, col)
+            minor = Matrix.from_array_list(minor)
+            det += cofactor * minor.det()
+
+        return det
+
+    def _get_minor(self, row, col):
+        return [
+            row[:col] + row[col + 1:]
+            for row in (self.data[:row] + self.data[row + 1:])
+        ]
+
+
     @staticmethod
     def identity(n):
         result = Matrix(n, n)
