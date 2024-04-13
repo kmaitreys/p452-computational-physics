@@ -50,6 +50,7 @@ class Matrix:
         if data == "zeros":
             self.data = [Array("d", [0] * ncols) for _ in range(nrows)]
         elif data == "empty":
+            raise NotImplementedError("Empty matrix not implemented")
             # Initialize an empty matrix using the ctypes module
             item_size = ctypes.sizeof(ctypes.c_double)
             buffer = (ctypes.c_double * (nrows * ncols * item_size))()
@@ -59,6 +60,16 @@ class Matrix:
 
     @classmethod
     def from_list(cls, data):
+        nrows = len(data)
+        ncols = len(data[0])
+        result = cls(nrows, ncols)
+        for i in range(nrows):
+            for j in range(ncols):
+                result.data[i][j] = data[i][j]
+        return result
+    
+    @classmethod
+    def from_array_list(cls, data):
         nrows = len(data)
         ncols = len(data[0])
         result = cls(nrows, ncols)
