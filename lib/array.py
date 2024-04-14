@@ -60,8 +60,10 @@ class Array(array):
     def __add__(self, other: Self) -> Self:
         if isinstance(other, Array):
             return Array(self.typecode, [x + y for x, y in zip(self, other)])
+        elif isinstance(other, (int, float)):
+            return Array(self.typecode, [x + other for x in self])
         else:
-            raise ValueError("Array can only be added to another Array")
+            raise ValueError(f"{type(other)} cannot be added to Array")
 
     def __radd__(self, other: int | float) -> Self:
         return self.__add__(other)
@@ -69,8 +71,10 @@ class Array(array):
     def __sub__(self, other: Self) -> Self:
         if isinstance(other, Array):
             return Array(self.typecode, [x - y for x, y in zip(self, other)])
+        elif isinstance(other, (int, float)):
+            return Array(self.typecode, [x - other for x in self])
         else:
-            raise ValueError("Array can only be subtracted from another Array")
+            raise ValueError(f"{type(other)} cannot be subtracted from Array")
 
     def __rsub__(self, other: int | float) -> Self:
         return self.__sub__(other)
