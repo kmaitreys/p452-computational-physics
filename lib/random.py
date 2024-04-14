@@ -3,15 +3,25 @@ from typing import Iterator
 from .array import zeros
 
 
-def _lcg(m: int, a: int, c: int, seed: int) -> Iterator[int]:
+def _lcg_iterator(m: int, a: int, c: int, seed: int) -> Iterator[int]:
     """
-    Implements the linear congruential generator.
+    Implements the linear congruential iterator.
     """
 
     x = seed
     while True:
         yield x
         x = (a * x + c) % m
+
+def _lcg_generator(m: int, a: int, c: int, seed: int):
+    """
+    Implements the linear congruential generator.
+    """
+
+    x = seed
+    while True:
+        x = (a * x + c) % m
+        yield x / m
 
 
 def random(
@@ -28,7 +38,7 @@ def random(
         m = 2**32
         a = 594_156_893
     c = 0
-    gen = _lcg(m, a, c, seed)
+    gen = _lcg_iterator(m, a, c, seed)
 
     if size is None:
         return start + (next(gen) / m) % (stop - start)
