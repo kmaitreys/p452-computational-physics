@@ -295,7 +295,7 @@ class Matrix:
                         self.data[k][j] += factor * self.data[i][j]
                         result.data[k][j] += factor * result.data[i][j]
         return result
-
+    
     def norm(self):
         norm = 0
         for i in range(self.nrows):
