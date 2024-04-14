@@ -487,8 +487,8 @@ class QRFactorization:
         max_iter: int = 10000,
     ):
         self.matrix = matrix
-        self.Q = Matrix(matrix.nrows, matrix.ncols, data="empty")
-        self.R = Matrix(matrix.nrows, matrix.ncols, data="empty")
+        self.Q = Matrix(matrix.nrows, matrix.ncols)
+        self.R = Matrix(matrix.nrows, matrix.ncols)
         self.method = method
         self.tol = tol
         self.max_iter = max_iter
