@@ -296,6 +296,13 @@ class Matrix:
                         result.data[k][j] += factor * result.data[i][j]
         return result
 
+    def norm(self):
+        norm = 0
+        for i in range(self.nrows):
+            for j in range(self.ncols):
+                norm += self.data[i][j] ** 2
+        return norm ** 0.5
+
     def __str__(self):
         # Round off the numbers to 5 decimal places
         for i in range(self.nrows):
