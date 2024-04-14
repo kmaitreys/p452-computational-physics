@@ -7,10 +7,14 @@ The following methods are available:
 - Simpson's Rule
 - Gaussian Quadrature
 """
+
 import math
-from typing import Callable, Tuple
+
+# import random
+from typing import Callable, Generator, Tuple
 
 from lib.array import arange
+from lib.random import _lcg_generator
 
 
 def get_max_steps(func, a, b, tol, method, *args):
@@ -247,5 +251,34 @@ def gaussian_quadrature(func: Callable, bounds: Tuple[float, float]):
     # method = get_quadrature_method(bounds)
 
 
-def monte_carlo():
-    pass
+def monte_carlo_integration(
+    rng: Generator, lower_bound, upper_bound, max_iter, func
+):
+    total = 0
+    for _ in range(max_iter):
+        x = next(rng) * (upper_bound - lower_bound) + lower_bound
+        total += func(x)
+
+    return (upper_bound - lower_bound) * total / max_iter
+
+
+def monte_carlo_sampler(
+    func: Callable,
+    lower_bound: float,
+    upper_bound: float,
+    sample_range: Tuple,
+    sample_step: float,
+    rng_state: Tuple,
+):
+    sample_collections = list(range(sample_range[0], sample_range[1], sample_step))
+
+    results = []
+
+    for sample_size in sample_collections:
+        random_genrator = _lcg_generator(rng_state[0], rng_state[1], rng_state[2], rng_state[3])
+        result = monte_carlo_integration(
+            random_genrator, lower_bound, upper_bound, sample_size, func
+        )
+        results.append(result)
+
+    return sample_collections, results
