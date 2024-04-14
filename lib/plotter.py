@@ -14,6 +14,7 @@ from typing import Callable, Tuple
 import matplotlib.pyplot as plt
 
 from .array import Array, linspace, zeros
+from .optimize import get_chebyshev_poly
 
 
 def plot_data(
@@ -60,3 +61,29 @@ def plot_function(
     plt.plot(x, y)
     plt.title(title)
     plt.show()
+
+def plot_poly(x: Array, y: Array, sol: Array, degree: int):
+    """
+    Plot a polynomial fit to a set of data.
+    """
+    y_fit = zeros("d", len(x))
+    for i in range(len(x)):
+        for j in range(degree+1):
+            y_fit[i] += sol[j] * x[i] ** j
+
+    plt.plot(x, y, "o",label="Data")
+    plt.plot(x, y_fit, label="Fit")
+    plt.legend()
+    plt.grid()
+
+def plot_chebyshev(x, sol):
+    y_fit = zeros("d", len(x))
+
+    for i in range(len(x)):
+        for j in range(len(sol)):
+            y_fit[i] += sol[j] * get_chebyshev_poly(x[i], j)
+
+    plt.plot(x, y_fit, label="Fit")
+    plt.legend()
+    plt.grid()
+        
