@@ -52,10 +52,14 @@ class Array(array):
     @property
     def length(self):
         return len(self)
-    
+
     @classmethod
     def fromlist(cls, typecode, lst):
         return cls(typecode, lst)
+    
+    # @classmethod
+    # def fromnumpy(cls, np_array):
+    #     return cls(np_array.typecode, np_array.tolist())
 
     def __add__(self, other: Self) -> Self:
         if isinstance(other, Array):
@@ -98,9 +102,14 @@ class Array(array):
         return self.__mul__(other)
 
     def __truediv__(self, other: int | float) -> Self:
-        if other == 0:
-            raise ValueError("Division by zero")
-        return Array(self.typecode, [x / other for x in self])
+        if isinstance(other, int | float):
+            if other == 0:
+                raise ValueError("Division by zero")
+            return Array(self.typecode, [x / other for x in self])
+        elif isinstance(other, Array):
+            if len(self) != len(other):
+                raise ValueError("Arrays must be of the same size")
+            return Array(self.typecode, [x / y for x, y in zip(self, other)])
 
     def __round__(self, n):
         return Array(self.typecode, [round(x, n) for x in self])
@@ -191,3 +200,7 @@ def inner(a: Array, b: Array):
 
 def norm(a: Array) -> float:
     return inner(a, a) ** 0.5
+
+
+def pow(a: float, v: Array) -> Array:
+    return Array(v.typecode, [a**x for x in v])
