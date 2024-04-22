@@ -2,20 +2,36 @@
 \usepackage{graphicx} % Required for inserting images
 \usepackage{amsmath} % Required for some math elements
 
-\title{\textbf{Synthetic Spectra for Interstellar 
-Molecules and Retrieval through Markov-Chain Monte-Carlo
-schemes}}
+\title{\textsc{Term Project}}
+\title{\textbf{Synthetic Spectra for Interstellar
+        Molecules in LTE and non-LTE regimes}}
 \author{Maitrey Sharma}
 \date{April 23, 2024}
-
 \begin{document}
 
 \maketitle
+\begin{abstract}
 
+\end{abstract}
 \section{Introduction}
+Consider a mono-atomic or singly-charged chemical species in gaseous state with
+\(N\) energy levels defined as \(E_i\) with \(i = 1 \ldots N\) in ascending
+order. Pertaining to the temperature this chemical species exists at, each
+level will have certain occupation or population. These occupation numbers can
+change due to collisions between neighboring molecules and if the environment
+is sufficiently dense and temperatures are sufficiently high, this population
+distribution can be deemed as thermal and can be expressed as
 \begin{equation}
-    \frac{dI}{ds} = -\alpha I + \beta
+    \dfrac{N_j}{N_i} = {e}^{-(E_j - E_i)/k_B T}
 \end{equation}
-\section{}
+Here, \(N_i\) (and \(N_j\)) represents the level occupation number density of state
+\(i\) (and \(j\)), \(k_B\) is the Boltzmann constant and \(T\) is the temperature of the
+gas. This thermal distribution is basis for the condition of \textit{local thermodynamic
+    equilibrium} or LTE.\@ In other words, the mean free path of the (excited) molecules
+is much, much less than the scales at which the temperature varies in the medium.
+
+\section{Radiative Transfer}
+\subsection{The Escape Probability Scheme}
+\subsection{Lambda Iteration and Accelerated Lambda Iteration}
 
 \end{document}
