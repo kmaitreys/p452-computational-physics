@@ -16,19 +16,19 @@ class Molecule:
     "Represents an atom or molecule"
 
     def __init__(
-        self, levels, rad_transitions, coll_transitions, partition_function=None
+        self, levels, radiative_transitions, collisional_transitions, partition_function=None
     ):
         """levels is a list of instances of the Level class
-        rad_transitions is a list of instances of the RadiativeTransition class
-        coll_transitions is a dictionary with an entry for each collision partner, where
+        radiative_transitions is a list of instances of the RadiativeTransition class
+        collional_transitions is a dictionary with an entry for each collision partner, where
         each entry is a list of instances of the CollisionalTransition class"""
         self.levels = levels
-        self.rad_transitions = rad_transitions  # list
+        self.radiative_transitions = radiative_transitions  # list
         # dictionary with list of collisional transitions for each collision
         # partner:
-        self.coll_transitions = coll_transitions
+        self.collisional_transitions = collisional_transitions
         self.n_levels = len(self.levels)
-        self.n_rad_transitions = len(self.rad_transitions)
+        self.n_rad_transitions = len(self.radiative_transitions)
         self.set_partition_function(partition_function=partition_function)
 
     @classmethod
@@ -41,8 +41,8 @@ class Molecule:
         )
         return cls(
             levels=data["levels"],
-            rad_transitions=data["radiative transitions"],
-            coll_transitions=data["collisional transitions"],
+            radiative_transitions=data["radiative transitions"],
+            collisional_transitions=data["collisional transitions"],
             partition_function=partition_function,
         )
 
@@ -86,7 +86,7 @@ class Molecule:
         """Returns the transition number for a given transition name"""
         candidate_numbers = [
             i
-            for i, line in enumerate(self.rad_transitions)
+            for i, line in enumerate(self.radiative_transitions)
             if line.name == transition_name
         ]
         assert len(candidate_numbers) == 1
@@ -99,40 +99,40 @@ class EmittingMolecule(Molecule):
     def __init__(
         self,
         levels,
-        rad_transitions,
-        coll_transitions,
-        line_profile_cls,
+        radiative_transitions,
+        collisional_transitions,
+        line_profile_type,
         width_v,
         partition_function=None,
     ):
         """levels is a list of instances of the Level class
-        rad_transitions is a list of instances of the RadiativeTransition class
-        coll_transitions is a dictionary with an entry for each collision partner, where
+        radiative_transitions is a list of instances of the RadiativeTransition class
+        collisional_transitions is a dictionary with an entry for each collision partner, where
         each entry is a list of instances of the CollisionalTransition class
-        line_profile_cls is the line profile class used to represent the line profile
+        line_profile_type is the line profile type used to represent the line profile
         width_v is the width of the line in velocity"""
         Molecule.__init__(
             self,
             levels=levels,
-            rad_transitions=rad_transitions,
-            coll_transitions=coll_transitions,
+            radiative_transitions=radiative_transitions,
+            collisional_transitions=collisional_transitions,
             partition_function=partition_function,
         )
         # convert radiative transitions to emission lines (but keep the same attribute name)
-        self.rad_transitions = [
+        self.radiative_transitions = [
             sp.EmissionLine.from_radiative_transition(
                 radiative_transition=rad_trans,
-                line_profile_cls=line_profile_cls,
+                line_profile_type=line_profile_type,
                 width_v=width_v,
             )
-            for rad_trans in self.rad_transitions
+            for rad_trans in self.radiative_transitions
         ]
 
     @classmethod
     def from_LAMDA_datafile(
         cls,
         datafilepath,
-        line_profile_cls,
+        line_profile_type,
         width_v,
         read_frequencies=False,
         partition_function=None,
@@ -143,9 +143,9 @@ class EmittingMolecule(Molecule):
         )
         return cls(
             levels=data["levels"],
-            rad_transitions=data["radiative transitions"],
-            coll_transitions=data["collisional transitions"],
-            line_profile_cls=line_profile_cls,
+            radiative_transitions=data["radiative transitions"],
+            collisional_transitions=data["collisional transitions"],
+            line_profile_type=line_profile_type,
             width_v=width_v,
             partition_function=partition_function,
         )
@@ -154,7 +154,7 @@ class EmittingMolecule(Molecule):
         """For a given total column density N and level population,
         compute the optical depth at line center for all radiative transitions"""
         tau_nu0 = []
-        for line in self.rad_transitions:
+        for line in self.radiative_transitions:
             x1 = level_population[line.low.number]
             x2 = level_population[line.up.number]
             tau_nu0.append(line.tau_nu0(N1=x1 * N, N2=x2 * N))
@@ -164,7 +164,7 @@ class EmittingMolecule(Molecule):
         """For a given level population, compute the excitation temperature
         for all radiative transitions"""
         Tex = []
-        for line in self.rad_transitions:
+        for line in self.radiative_transitions:
             x1 = level_population[line.low.number]
             x2 = level_population[line.up.number]
             Tex.append(line.Tex(x1=x1, x2=x2))

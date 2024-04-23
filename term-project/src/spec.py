@@ -18,12 +18,12 @@ class LineProfile:
         self.width_nu = ut.get_frequency_interval(self.width_v, self.nu0)
         self.initialise_phi_nu_params()
         # array of nu values covering the line
-        self.nu_array = np.linspace(
+        self.freq_array = np.linspace(
             self.nu0 - self.window_width / 2 * self.width_nu,
             self.nu0 + self.window_width / 2 * self.width_nu,
             self.n_nu_elements,
         )
-        self.phi_nu_array = self.phi_nu(self.nu_array)
+        self.phi_nu_array = self.phi_nu(self.freq_array)
 
     def initialise_phi_nu_params(self):
         raise NotImplementedError
@@ -40,7 +40,8 @@ class LineProfile:
         (i.e. line profile weighted integral), given
         as an array x_nu_array which has to be defined over the frequencies of
         the nu_array of the LineProfile instance."""
-        return np.trapz(x_nu_array * self.phi_nu_array, self.nu_array)
+
+        return np.trapz(x_nu_array * self.phi_nu_array, self.freq_array)
 
 
 class GaussianLineProfile(LineProfile):
@@ -194,24 +195,24 @@ class EmissionLine(RadiativeTransition):
     """Represents an emission line arising from the radiative transition between
     two levels"""
 
-    def __init__(self, up, low, A21, line_profile_cls, width_v, nu0=None):
+    def __init__(self, up, low, A21, line_profile_type, width_v, nu0=None):
         """up and low are instances of the Level class, representing the upper
         and lower level of the transition. A21 is the Einstein coefficient,
-        line_profile_cls is the line profile class to be used,
+        line_profile_type is the line profile type to be used,
         and width_v the witdht of the line. The optinal argument nu0 is the
         line frequency; if not given, nu0 will be calculated from the level energies."""
         RadiativeTransition.__init__(self, up=up, low=low, A21=A21, nu0=nu0)
-        self.line_profile = line_profile_cls(nu0=self.nu0, width_v=width_v)
+        self.line_profile = line_profile_type(nu0=self.nu0, width_v=width_v)
 
     @classmethod
-    def from_radiative_transition(cls, radiative_transition, line_profile_cls, width_v):
+    def from_radiative_transition(cls, radiative_transition, line_profile_type, width_v):
         """Alternative constructor, taking an instance of RadiativeTransition,
         a line profile class and the width of the line"""
         return cls(
             up=radiative_transition.up,
             low=radiative_transition.low,
             A21=radiative_transition.A21,
-            line_profile_cls=line_profile_cls,
+            line_profile_type=line_profile_type,
             width_v=width_v,
             nu0=radiative_transition.nu0,
         )
@@ -231,13 +232,13 @@ class EmissionLine(RadiativeTransition):
         """Compute the optical depth from the column densities N1 and N2 in the lower
         and upper level respectively. Returns an array corresponding to the
         frequencies defined in the line profile"""
-        return self.tau_nu(N1=N1, N2=N2, nu=self.line_profile.nu_array)
+        return self.tau_nu(N1=N1, N2=N2, nu=self.line_profile.freq_array)
 
     def tau_nu0(self, N1, N2):
         """Computes the optical depth at the line center from the column densities
         N1 and N2 in the lower and upper level respectively."""
         tau_nu0 = np.interp(
-            self.nu0, self.line_profile.nu_array, self.tau_nu_array(N1=N1, N2=N2)
+            self.nu0, self.line_profile.freq_array, self.tau_nu_array(N1=N1, N2=N2)
         )
         return tau_nu0
 

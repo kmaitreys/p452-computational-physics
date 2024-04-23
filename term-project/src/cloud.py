@@ -3,7 +3,6 @@ import warnings
 import numpy as np
 import scipy.linalg as la
 
-from . import constants as cc
 from . import escape as esc
 from . import spec as sp
 from . import utils as ut
@@ -78,7 +77,7 @@ class RateMatrix:
         for partner, density in self.collisional_partner_densities.items():
             for transition in self.molecule.collisional_transitions[partner]:
                 coeffs = transition.coeffs(self.kinetic_temp)
-                k_12, k_21 = coeffs["k_12"], coeffs["k_21"]
+                k_12, k_21 = coeffs["K12"], coeffs["K21"]
                 matrix[transition.up.number, transition.low.number] += k_12 * density
                 matrix[transition.low.number, transition.low.number] += -k_12 * density
                 matrix[transition.low.number, transition.up.number] += k_21 * density
@@ -121,9 +120,13 @@ class Cloud:
             partition_function = None,
             verbose = False,
     ):
+        if line_profile == "gaussian":
+            line_profile_type = sp.GaussianLineProfile
+        elif line_profile == "rectangular":
+            line_profile_type = sp.RectangularLineProfile
         self.emitting_molecule = EmittingMolecule.from_LAMDA_datafile(
             file_path,
-            line_profile,
+            line_profile_type,
             velocity_width,
             partition_function,
         )
@@ -140,9 +143,9 @@ class Cloud:
         )
         self.verbose = verbose
     
-    def get_escape_probabilities(self, level_populations):
+    def get_escape_probability_forall(self, level_populations):
         beta = []
-        for line in self.emitting_molecule.rad_transitions:
+        for line in self.emitting_molecule.radiative_transitions:
             N_1 = self.total_column_density * level_populations[line.low.number]
             N_2 = self.total_column_density * level_populations[line.up.number]
             beta_freq_arr = esc.get_escape_probability(
@@ -154,11 +157,113 @@ class Cloud:
         return np.array(beta)
 
     def solve_radiative_transfer(self):
-        ...
-    
+        beta_lines = np.ones(self.emitting_molecule.n_rad_transitions)
+        i_ext_lines = np.array(
+            [
+                self.background(line.nu0)
+                for line in self.emitting_molecule.radiative_transitions
+            ]
+        )
+        level_populations = self.rate_matrix.solve(
+            beta_arr=beta_lines, i_ext_arr=i_ext_lines
+        )
+        excitation_temp_residual = np.ones(
+            self.emitting_molecule.n_rad_transitions
+        ) * np.inf
+        excitation_temp_old = 0
+        counter = 0
+
+        while (
+            np.any(excitation_temp_residual > self.relative_convergence) or counter < self.min_iter
+        ):
+            counter += 1
+            if counter % 10 == 0 and self.verbose:
+                print(f"Iteration {counter:4d}")
+            if counter > self.max_iter:
+                raise RuntimeError("Max iterations reached")
+            new_level_populations = self.rate_matrix.solve(
+                beta_arr=beta_lines, i_ext_arr=i_ext_lines
+            )
+            excitation_temp = self.emitting_molecule.get_Tex(new_level_populations)
+            excitation_temp_residual = ut.get_relative_difference(
+                excitation_temp, excitation_temp_old
+            )
+            if self.verbose:
+                print(f"Maximum relative excitation temperature residual: {np.max(excitation_temp_residual):.2e}")
+            
+            excitation_temp_old = excitation_temp.copy()
+
+            level_populations = (
+                self.relaxation_factor * new_level_populations
+                + (1 - self.relaxation_factor) * level_populations
+            )
+            beta_lines = self.get_escape_probability_forall(level_populations)
+        if self.verbose:
+            print(f"Converged in {counter} iterations")
+        
+        self.tau_nu0 = self.emitting_molecule.get_tau_nu0(
+            self.total_column_density, level_populations
+        )
+        if np.any(self.tau_nu0 < 0):
+            negative_lines = np.where(self.tau_nu0 < 0)[0]
+            negative_transitions = [
+                self.emitting_molecule.radiative_transitions[line]
+                for line in negative_lines
+            ]
+            warnings.warn(
+                f"Negative optical depths for transitions {negative_transitions}"
+            )
+            for line, transition in zip(
+                negative_lines, negative_transitions
+            ):
+                print(f"Transition {transition} has negative optical depth = {self.tau_nu0[line]}")
+
+        self.level_populations = level_populations
+        self.excitation_temp = self.emitting_molecule.get_Tex(level_populations)
+
+
     def get_line_fluxes(self, solid_angle):
-        ...
+        self.obs_line_fluxes = []
+        self.obs_line_spectra = []
+
+        for i, line in enumerate(self.emitting_molecule.radiative_transitions):
+            freq_arr = line.line_profile.freq_array
+            x1 = self.level_populations[line.low.number]
+            x2 = self.level_populations[line.up.number]
+            source_function = ut.plank_freq(freq_arr, self.excitation_temp[i])
+            tau_freq = line.tau_nu_array(
+                N1 = x1 * self.total_column_density,
+                N2 = x2 * self.total_column_density,
+            )
+            line_flux_freq = esc.get_flux(
+                self.geometry,
+                source_function,
+                tau_freq,
+                solid_angle,
+            ) 
+            self.obs_line_spectra.append(line_flux_freq)
+            line_flux = np.trapz(line_flux_freq, freq_arr)
+            self.obs_line_fluxes.append(line_flux)
 
     def display_results(self):
-        ...
+        print("\n")
+        print(
+            "  up   low      nu [GHz]    T_ex [K]      poplow         popup"
+            + "         tau_nu0"
+        )
+        for i, line in enumerate(self.emitting_molecule.radiative_transitions):
+            rad_trans_string = (
+                "{:>4d} {:>4d} {:>14.6f} {:>10.2f} {:>14g} {:>14g} {:>14g}"
+            )
+            rad_trans_format = (
+                line.up.number,
+                line.low.number,
+                line.nu0 / 1e9,
+                self.excitation_temp[i],
+                self.level_populations[line.low.number],
+                self.level_populations[line.up.number],
+                self.tau_nu0[i],
+            )
+            print(rad_trans_string.format(*rad_trans_format))
+        print("\n")
     

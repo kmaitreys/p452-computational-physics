@@ -37,7 +37,7 @@ def get_background(z=0):
     temp_cmb = 2.73 * (1 + z)
 
     def cmb(nu):
-        return plank_freq(nu=nu, temp=temp_cmb)
+        return plank_freq(freq=nu, temp=temp_cmb)
 
     return cmb
 
