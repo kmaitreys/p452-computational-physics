@@ -117,7 +117,7 @@ class LTE(object):
     def parse_Q(self, species):
         colwidths = [6, 13, 7] + 9 * [7]
         self.partfunc = ascii.read(
-            "partfunc.txt",
+            "/home/kmaitreys/Documents/college/10-2024-spring/p452-computational-physics/term-project/src/resources/cdms_partition_functions.dat",
             guess=False,
             format="fixed_width_no_header",
             col_starts=tuple([0]) + tuple(np.cumsum(colwidths[0:-1])),
