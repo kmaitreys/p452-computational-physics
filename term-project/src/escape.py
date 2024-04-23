@@ -35,7 +35,7 @@ def get_flux(geometry, source_function, tau_freq, solid_angle):
 
 
 def get_escape_probability(geometry, tau_freq):
-    if geometry == "uniform_sphere":
+    if geometry == "uniform_sphere" or geometry == "uniform_shock_slab":
         tau_epsilon = 5e-5
         min_tau = -1
 
@@ -43,22 +43,22 @@ def get_escape_probability(geometry, tau_freq):
         probability = np.ones_like(tau_freq) * np.inf
         stable_optical_depth_region = tau_freq > tau_epsilon
         probability[stable_optical_depth_region] = beta_analytical(
-            geometry="uniform_sphere",
+            geometry=geometry,
             tau_freq=tau_freq[stable_optical_depth_region]
         )
         small_tau_region = np.abs(tau_freq) < tau_epsilon
-        probability[small_tau_region] = beta_taylor(geometry="uniform_sphere",
+        probability[small_tau_region] = beta_taylor(geometry=geometry,
                                                     tau_freq=tau_freq[small_tau_region])
 
         negative_tau_region = (tau_freq >= min_tau) & (tau_freq < -tau_epsilon)
         probability[negative_tau_region] = beta_analytical(
-            geometry="uniform_sphere",
+            geometry=geometry,
             tau_freq=tau_freq[negative_tau_region]
         )
 
         uncertain_negative_tau_region = tau_freq < min_tau
         probability[uncertain_negative_tau_region] = beta_analytical(
-            geometry="uniform_sphere",
+            geometry=geometry,
             tau_freq=np.abs(tau_freq[uncertain_negative_tau_region])
         )
 

@@ -185,6 +185,7 @@ class Cloud:
                 beta_arr=beta_lines, i_ext_arr=i_ext_lines
             )
             excitation_temp = self.emitting_molecule.get_Tex(new_level_populations)
+            
             excitation_temp_residual = ut.get_relative_difference(
                 excitation_temp, excitation_temp_old
             )

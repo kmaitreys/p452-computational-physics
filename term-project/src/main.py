@@ -8,7 +8,7 @@ from . import constants as cc
 from . import utils as ut
 
 data_filepath = "/home/kmaitreys/Documents/pegasis-projects/synthspec/pythonradex-master/examples/co.dat"  # relative or absolute path to the LAMDA datafile
-geometry = "uniform_sphere"
+geometry = "uniform_shock_slab"
 # spectral radiance of the background in units of [W/m2/Hz/sr].
 # This is simply a function of nu. Here using a pre-defined function, namely the
 # Planck function at 2.73 K (CMB), but one can define its own if wished
