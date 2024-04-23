@@ -3,32 +3,30 @@ import numpy as np
 from . import utils as ut
 
 
-class Source:
-    def __init__(self):
-        self.geometry = "point"
-        self.function = None
-        self.min_tau_freq = 1e-2
+def get_flux(geometry, source_function, tau_freq, solid_angle):
 
+    if (
+        geometry == "uniform_shock_slab"
+        or geometry == "uniform_face_on_slab"
+    ):
+        return source_function * (1 - np.exp(-tau_freq)) * solid_angle
 
-def get_flux(source: Source, tau_freq, solid_angle):
-    if source.geometry == "point":
-        return source.function * (1 - np.exp(-tau_freq)) * solid_angle
-
-    elif source.geometry == "uniform_sphere":
+    elif geometry == "uniform_sphere":
+        min_tau_freq = 1e-2
         tau_freq = np.array(tau_freq)
-        stable_region = tau_freq > source.min_tau_freq
+        stable_region = tau_freq > min_tau_freq
         with np.errstate(divide="ignore", invalid="ignore"):
             flux = (
                 2
                 * np.pi
-                * source.function
+                * source_function
                 / tau_freq**2
                 * (tau_freq**2 / 2 - 1 + (tau_freq + 1) * np.exp(-tau_freq))
             )
         flux_freq_taylor = (
             2
             * np.pi
-            * source.function
+            * source_function
             * (tau_freq / 3 - tau_freq**2 / 8 + tau_freq**3 / 30 - tau_freq**4 / 144)
         )
         flux_freq = np.where(stable_region, flux, flux_freq_taylor)
@@ -36,8 +34,8 @@ def get_flux(source: Source, tau_freq, solid_angle):
         return flux_freq * solid_angle / np.pi
 
 
-def get_escape_probability(source: Source, tau_freq):
-    if source.geometry == "taylor":
+def get_escape_probability(geometry, tau_freq):
+    if geometry == "taylor":
         tau_epsilon = 5e-5
         min_tau = -1
 
@@ -63,7 +61,7 @@ def get_escape_probability(source: Source, tau_freq):
         assert np.all(np.isfinite(probability))
         return probability
 
-    elif source.geometry == "uniform_face_on_slab":
+    elif geometry == "uniform_face_on_slab":
         theta = np.linspace(0, np.pi / 2, 200)
         tau_grid = np.logspace(-3, 2, 1000)
         min_tau_nu = np.min(tau_grid)
@@ -84,8 +82,8 @@ def get_escape_probability(source: Source, tau_freq):
         return probability
 
 
-def beta_analytical(source: Source, tau_freq):
-    if source.geometry == "uniform_sphere":
+def beta_analytical(geometry, tau_freq):
+    if geometry == "uniform_sphere":
         tau_freq = np.array(tau_freq)
         return (
             1.5
@@ -96,12 +94,12 @@ def beta_analytical(source: Source, tau_freq):
                 + (2 / tau_freq + 2 / tau_freq**2) * np.exp(-tau_freq)
             )
         )
-    elif source.geometry == "uniform_shock_slab":
+    elif geometry == "uniform_shock_slab":
         return (1 - np.exp(-3 * tau_freq)) / (3 * tau_freq)
 
 
-def beta_taylor(source: Source, tau_freq):
-    if source.geometry == "uniform_sphere":
+def beta_taylor(geometry, tau_freq):
+    if geometry == "uniform_sphere":
         return (
             1
             - 0.375 * tau_freq
@@ -109,7 +107,7 @@ def beta_taylor(source: Source, tau_freq):
             - 0.0208333 * tau_freq**3
             + 0.00357143 * tau_freq**4
         )
-    elif source.geometry == "uniform_shock_slab":
+    elif geometry == "uniform_shock_slab":
         return (
             1
             - (3 * tau_freq) / 2
