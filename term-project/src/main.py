@@ -92,11 +92,11 @@ def simulate_non_lte():
         ax.plot(x, spectra, label=f"Synthetic spectra for line {example_cloud.emitting_molecule.radiative_transitions[frame].name}")
         ax.legend()
     
-    # Create animation
-    ani = FuncAnimation(fig, update, frames=len(example_cloud.obs_line_spectra), interval=200)
+    # # Create animation
+    # ani = FuncAnimation(fig, update, frames=len(example_cloud.obs_line_spectra), interval=200)
 
-    # Save the animation as a GIF
-    ani.save('animated_plot.gif', writer='imagemagick')
+    # # Save the animation as a GIF
+    # ani.save('animated_plot.gif', writer='imagemagick')
 
     for i, spectra in enumerate(example_cloud.obs_line_spectra):
         if i % 4 == 0:
@@ -108,7 +108,8 @@ def simulate_non_lte():
             plt.ylabel("flux [W/m2]")
             plt.legend()
 
-    plt.title("Observed spectra")
+    plt.title("Synthetic spectra")
+    # plt.savefig("observed_spectra.png", dpi=1200, bbox_inches='tight')
     plt.show()
 
 
