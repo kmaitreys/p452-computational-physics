@@ -1,7 +1,12 @@
 import astropy
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+
+# import pylab as pl
 from astropy import units as u
 from astropy.io import ascii
+from astropy.table import Table
 
 # from astropy.table import Column
 from astroquery.splatalogue import Splatalogue
@@ -36,7 +41,13 @@ class LTE(object):
         self.extent = extent
 
     def from_CDMS(self, CDMS_file, Dipole_factor):
-        data = ascii.read(CDMS_file)
+        cdms_colnames = ('FREQ', 'ERR', 'LGINT', 'DR',  'ELO', 'GUP', 'TAG', 'QNFMT',  'QN1',  'QN2',     'SPECIES')
+        cdms_colstarts = (0,       13,   24,  35,    37,  47,  50, 57, 61,   72, 89 )
+        data = Table.read('/home/kmaitreys/Documents/college/10-2024-spring/p452-computational-physics/term-project/src/resources/co.cat',
+            format='ascii.fixed_width_no_header',
+            names=cdms_colnames,
+            col_starts=cdms_colstarts,
+             )
         Q300 = self.compute_Q(300)
         cm2K = (
             (astropy.constants.h * astropy.constants.c / u.cm)
@@ -115,31 +126,51 @@ class LTE(object):
         table.remove_rows(not_hfs_idx)
 
     def parse_Q(self, species):
-        colwidths = [6, 13, 7] + 9 * [7]
-        self.partfunc = ascii.read(
+        colnames = [
+            "tag",
+            "molecule",
+            "nline",
+            "1000 K",
+            "500 K",
+            "300K",
+            "225K",
+            "150K",
+            "75K",
+            "37.5K",
+            "18.75K",
+            "9.375 K",
+            "5.0 K",
+            "2.725 K",
+        ]
+        colspecs = [
+            (0, 6),
+            (7, 37),
+            (37, 43),
+            (43, 57),
+            (57, 70),
+            (70, 83),
+            (83, 96),
+            (96, 109),
+            (109, 122),
+            (122, 135),
+            (135, 150),
+            (150, 164),
+            (164, 178),
+            (178, 192),
+        ]
+        self.partfunc = pd.read_fwf(
             "/home/kmaitreys/Documents/college/10-2024-spring/p452-computational-physics/term-project/src/resources/cdms_partition_functions.dat",
-            guess=False,
-            format="fixed_width_no_header",
-            col_starts=tuple([0]) + tuple(np.cumsum(colwidths[0:-1])),
-            col_ends=tuple(np.cumsum(colwidths)),
-            names=(
-                "tag",
-                "molecule",
-                "nline",
-                "300K",
-                "225K",
-                "150K",
-                "75K",
-                "37.5K",
-                "18.75K",
-                "9.375 K",
-                "5.0 K",
-                "2.725 K",
-            ),
+            names=colnames,
+            colspecs=colspecs,
+            comment="!",
         )
         row = self.partfunc[self.partfunc["molecule"] == species]
-        row["0 K"] = row["9.375 K"]
-        self.qval = list(row.filled()[0].data)[3:]
+        row = row.reset_index(drop=True)
+        row.loc[0, "0 K"] = row.loc[0, "9.375 K"]
+        # self.qval = list(row.filled()[0].data)[3:]
+        row = row.fillna(0)
+        row = row.drop(["tag", "molecule", "nline"], axis=1)
+        self.qval = row.values.tolist()[0]
         self.qval = np.array(map(float, self.qval))
         print(self.qval)
 
@@ -300,3 +331,44 @@ class LTE(object):
             )[4].value
             for row in self.linelist
         ]
+
+
+# idx_obs = [[0], [1], []]
+# L = LTE(
+#     "CO, v=0",
+#     "CO, v=0",
+#     idx_obs,
+#     points_per_line=20,
+#     CDMS_file="/home/kmaitreys/Documents/college/10-2024-spring/p452-computational-physics/term-project/src/resources/co.cat",
+#     Qfactor=1.0,
+# )
+
+
+# row = L.linelist[0]
+# Ntot = 1e14
+# Tex = 18.75
+# dv = 2
+
+# out = L.tau(
+#     np.array(row["Freq-MHz"]),
+#     np.array(row["Aij"]),
+#     np.array(row["g_u"]),
+#     np.array(row["EU_K"]),
+#     L.compute_Q(L.part_name, Tex),
+#     Ntot,
+#     Tex,
+#     dv,
+# )
+# print(np.log10(L.compute_Q("CO", Tex)))
+# print("tau max", out[0])
+
+# tau_intens = L.intens_tau(Ntot, Tex, dv)
+
+
+# plt.ion()
+# plt.figure(1)
+# plt.clf()
+# plt.plot(out[1].value, out[2].value)
+# print(out[3])
+# print(tau_intens[0])
+# print(tau_intens[1])

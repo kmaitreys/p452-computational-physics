@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.animation import FuncAnimation
 
 from . import cloud
 from . import constants as cc
@@ -29,7 +30,7 @@ def simulate_lte():
 
 def simulate_non_lte():
     data_filepath = "/home/kmaitreys/Documents/pegasis-projects/synthspec/pythonradex-master/examples/co.dat"  # relative or absolute path to the LAMDA datafile
-    geometry = "uniform_shock_slab"
+    geometry = "uniform_sphere"
     # spectral radiance of the background in units of [W/m2/Hz/sr].
     # This is simply a function of nu. Here using a pre-defined function, namely the
     # Planck function at 2.73 K (CMB), but one can define its own if wished
@@ -78,11 +79,38 @@ def simulate_non_lte():
     example_cloud.get_line_fluxes(solid_angle=solid_angle)
     # for flux in example_nebula.obs_line_fluxes:
     #     print(f"observed flux: {flux} W/m2")
+    # Create figure and axis
+    fig, ax = plt.subplots()
+    ax.set_xlabel("velocity [km/s]")
+    ax.set_ylabel("flux [W/m2]")
 
-    for spectra in example_cloud.obs_line_spectra:
-        plt.plot(spectra)
+    def update(frame):
+        ax.clear()
+        spectra = example_cloud.obs_line_spectra[frame]
+        x = np.linspace(-350, 350, len(spectra))
+        spectra[spectra == 0] = 1e-100    
+        ax.plot(x, spectra, label=f"Synthetic spectra for line {example_cloud.emitting_molecule.radiative_transitions[frame].name}")
+        ax.legend()
+    
+    # Create animation
+    ani = FuncAnimation(fig, update, frames=len(example_cloud.obs_line_spectra), interval=200)
 
+    # Save the animation as a GIF
+    ani.save('animated_plot.gif', writer='imagemagick')
+
+    for i, spectra in enumerate(example_cloud.obs_line_spectra):
+        if i % 4 == 0:
+            # Start x-axis label at -10 km/s
+            x = np.linspace(-350, 350, len(spectra))
+            spectra[spectra == 0] = 1e-100    
+            plt.plot(x, spectra, label=f"Synthetic spectra for line {example_cloud.emitting_molecule.radiative_transitions[i].name}")
+            plt.xlabel("velocity [km/s]")
+            plt.ylabel("flux [W/m2]")
+            plt.legend()
+
+    plt.title("Observed spectra")
     plt.show()
+
 
     print(
         "observed flux of second transition: {:g} W/m2".format(
@@ -92,4 +120,4 @@ def simulate_non_lte():
 
 
 if __name__ == "__main__":
-    simulate_spectra(lte=True)
+    simulate_spectra()
