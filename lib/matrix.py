@@ -244,6 +244,12 @@ class Matrix:
                 for j in range(self.ncols):
                     result[i] += self.data[i][j] * other[j]
             return result
+        elif isinstance(other, float | int):
+            result = Matrix(self.nrows, other.ncols)
+            for i in range(self.nrows):
+                for j in range(self.ncols):
+                    result.data[i][j] = other * self.data[i, j]
+            return result
 
     def __matmul__(self, other):
         return self.__mul__(other)
